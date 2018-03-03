@@ -19,6 +19,7 @@ length_dash_segment = 10
 bitrate_prefix = "./bitrate/"
 qp_prefix = "./qp/"
 auto_prefix = "/auto/"
+output_prefix = "./output/"
 
 #subprocess('cat dash_tiled_set1_init.mp4 >> tiled.mp4', shell=True)
 
@@ -37,17 +38,17 @@ parser.add_argument('--low', nargs='*', type=int, metavar='2 3 4', help='Set dow
 parser.add_argument('--medium', nargs='*', type=int, metavar='5 6 7', help='Set down which tiles should be medium quality')
 parser.add_argument('--high', nargs='*',  type=int, metavar='8 9 10', help='Set down which tiles should be high quality')
 
-parser.print_help()
 args = parser.parse_args('--bitrate --segment 1 --low 2 3 4 --medium 5 6 7 --high 8 9 10'.split())
 
-print()
-print(args.ip)
-print(args.tiles)
-print(args.bitrate)
-print(args.segment)
-print(args.low)
-print(args.medium)
-print(args.high)
+#parser.print_help()
+#print()
+#print(args.ip)
+#print(args.tiles)
+#print(args.bitrate)
+#print(args.segment)
+#print(args.low)
+#print(args.medium)
+#print(args.high)
 
 # add init track into tiled videos list
 video_list = []
@@ -55,14 +56,14 @@ video_list.append("dash_tiled_set1_init.mp4")
 
 # Sort the tracks into tiled videos list
 for i in range(1, no_of_tiles+2, 1):
-    if i in args.low:
-        print("video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(args.segment[0]) + ".m4s")
+    if i == 1:
+        # track1 is needed
+        video_list.append("video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(args.segment[0]) + ".m4s")
+    elif i in args.low:
         video_list.append("video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(args.segment[0]) + ".m4s")
     elif i in args.medium:
-        print("video_tiled_" + "medium_" + "dash_" + "track" + str(i) + "_" + str(args.segment[0]) + ".m4s")
         video_list.append("video_tiled_" + "medium_" + "dash_" + "track" + str(i) + "_" + str(args.segment[0]) + ".m4s")
     elif i in args.high:
-        print("video_tiled_" + "high_" + "dash_" + "track" + str(i) + "_" + str(args.segment[0]) + ".m4s")
         video_list.append("video_tiled_" + "high_" + "dash_" + "track" + str(i) + "_" + str(args.segment[0]) + ".m4s")
     else:
         print("There is no case.")
@@ -70,6 +71,13 @@ print()
 
 # Concatenate init track and each tiled tracks
 for i in range(0, len(video_list), 1):
-    print(bitrate_prefix + str(length_dash_segment) + "s" + auto_prefix + video_list[i])
-    subprocess.call('ls %s' % (bitrate_prefix + str(length_dash_segment) + "s" + auto_prefix + video_list[i]), shell=True)
+    subprocess.call('cat %s >> temp_%s.mp4' % 
+            ( (bitrate_prefix + str(length_dash_segment) + "s" + auto_prefix + video_list[i]), 
+                args.segment[0]), shell=True)
 
+# Extract the raw hevc bitstream
+subprocess.call('MP4Box -raw 1 temp_%s.mp4' % args.segment[0], shell=True)
+
+# Repackage and generate new ERP video
+subprocess.call('MP4Box -add temp_%s_track1.hvc:fps=25 -new output_%s.mp4' % 
+        (args.segment[0], args.segment[0]), shell=True)
