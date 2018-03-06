@@ -67,7 +67,29 @@ for i in range(1, no_of_tiles+2, 1):
         video_list.append("video_tiled_" + "high_" + "dash_" + "track" + str(i) + "_" + str(args.segment[0]) + ".m4s")
     else:
         print("There is no case.")
-print()
+#print()
+
+# Remove files at first
+try:
+    rm_temp_mp4 = "temp_" + str(args.segment[0]) + ".mp4" 
+    os.remove(rm_temp_mp4)
+except OSError:
+    print ("File %s do not exsit." % rm_temp_mp4)
+    pass
+
+try:
+    rm_temp_hvc = "temp_" + str(args.segment[0]) + "_track1.hvc"
+    os.remove(rm_temp_hvc)
+except OSError:
+    print ("File %s do not exsit." % rm_temp_hvc)
+    pass 
+
+try:
+    rm_output = "output_" + str(args.segment[0]) + ".mp4"
+    os.remove(rm_output)
+except OSError:
+    print ("File %s do not exsit." % rm_output)
+    pass
 
 # Concatenate init track and each tiled tracks
 for i in range(0, len(video_list), 1):
@@ -81,3 +103,5 @@ subprocess.call('MP4Box -raw 1 temp_%s.mp4' % args.segment[0], shell=True)
 # Repackage and generate new ERP video
 subprocess.call('MP4Box -add temp_%s_track1.hvc:fps=25 -new output_%s.mp4' % 
         (args.segment[0], args.segment[0]), shell=True)
+
+# End
