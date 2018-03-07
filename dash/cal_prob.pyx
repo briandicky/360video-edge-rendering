@@ -102,7 +102,7 @@ cdef Pos3d outImgToXYZ(int i,int j,float tx,float ty,float tz,float a1,float b1,
 
 # convert using an inverse transformation
 #def convertBack(imgIn,imgOut,fov_size,fov_degree,ctheta,cphi):
-def cal_fovs(ctheta,cphi, float fov_degreew, float fov_degreeh, float tile_w, float tile_h, float fov_sizew, float fov_sizeh):
+def cal_fovs(ctheta, cphi, float fov_degreew, float fov_degreeh, float tile_w, float tile_h, float fov_sizew, float fov_sizeh):
     probs=[0.0 for i in range(int(tile_w*tile_h))]
     cdef float theta, phi, tx, ty, tz, r
     cdef float a, b, c, d, a1, b1, c1, a2, b2, c2

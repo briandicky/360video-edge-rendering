@@ -12,19 +12,16 @@ import subprocess
 import argparse
 import math
 
-no_of_tiles = 3*3
-ip_encoding_server = "140.114.77.125"
-length_dash_segment = 10
+#no_of_tiles = 3*3
+#ip_encoding_server = "140.114.77.125"
+#length_dash_segment = 10
+#
+#bitrate_prefix = "./bitrate/"
+#qp_prefix = "./qp/"
+#auto_prefix = "/auto/"
+#output_prefix = "./output/"
 
-bitrate_prefix = "./bitrate/"
-qp_prefix = "./qp/"
-auto_prefix = "/auto/"
-output_prefix = "./output/"
-
-#subprocess('cat dash_tiled_set1_init.mp4 >> tiled.mp4', shell=True)
-
-#video_tiled_medium_dash_track1_1.m4s video_tiled_medium_dash_track2_1.m4s video_tiled_medium_dash_track3_1.m4s video_tiled_medium_dash_track4_1.m4s video_tiled_medium_dash_track5_1.m4s ../low/video_tiled_low_dash_track6_1.m4s video_tiled_medium_dash_track7_1.m4s video_tiled_medium_dash_track8_1.m4s video_tiled_medium_dash_track9_1.m4s video_tiled_medium_dash_track10_1.m4s > test.mp4
-
+# arguments parser
 parser = argparse.ArgumentParser(
         prog='tiles_repackager',
         description='blablabla',
@@ -66,8 +63,7 @@ for i in range(1, no_of_tiles+2, 1):
     elif i in args.high:
         video_list.append("video_tiled_" + "high_" + "dash_" + "track" + str(i) + "_" + str(args.segment[0]) + ".m4s")
     else:
-        print("There is no case.")
-#print()
+        video_list.append("video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(args.segment[0]) + ".m4s")
 
 # Remove files at first
 try:
