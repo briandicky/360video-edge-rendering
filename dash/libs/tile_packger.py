@@ -10,6 +10,7 @@ import os
 import sys 
 import math 
 import subprocess
+from cal_prob import gen_prob
 
 bitrate_path = "./bitrate/"
 qp_path = "./qp/"
@@ -94,6 +95,20 @@ def clean_exsited_files(tmp_path, output_path, seg_id):
     except OSError:
         print("File %s do not exsit." % rm_output)
         pass
+
+
+def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
+    # gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+    prob = gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+
+    tiles = []
+    for i in range(0, len(prob), 1):
+        if prob[i] == 1:
+            tiles.append(i)
+
+    corr_tiles = [j+2 for j in tiles]
+    print(corr_tiles)
+    return corr_tiles
 
 
 # Testing
