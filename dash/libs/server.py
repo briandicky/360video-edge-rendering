@@ -12,6 +12,10 @@ import sys
 SERVER_ADDR = "140.114.77.125"
 SERVER_PORT = 9487
 
+CHUNK_SIZE = 4096
+
+f = open("record.csv", "w")
+
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -28,12 +32,14 @@ while True:
     print >> sys.stderr, 'waiting for a connection' 
     connection, client_address = sock.accept()
     try:
+        print >> sys.stderr, 'connection:', connection
         print >> sys.stderr, 'connection from', client_address
 
         # Receive the data in small chunks and retransmit it
         while True:
-            data = connection.recv(16)
+            data = connection.recv(CHUNK_SIZE)
             print >> sys.stderr, 'received "%s"' % data
+            f.write(data)
             
             if data:
                 print >> sys.stderr, 'sending data back to the client'

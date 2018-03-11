@@ -39,5 +39,7 @@ print("seg_length: %s" % seg_length)
 print("seg_id: %s" % seg_id)
 
 
-viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-tile_packger.mixed_tiles_quality(no_of_tiles, seg_length, seg_id, [], [], viewed_tiles)
+#viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+#tile_packger.mixed_tiles_quality(no_of_tiles, seg_length, seg_id, [], [], viewed_tiles)
+
+

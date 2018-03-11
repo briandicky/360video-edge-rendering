@@ -12,6 +12,8 @@ import sys
 SERVER_ADDR = "140.114.77.125"
 SERVER_PORT = 9487
 
+CHUNK_SIZE = 4096
+
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -31,7 +33,7 @@ try:
     amount_expected = len(message)
 
     while amount_received < amount_expected:
-        data = sock.recv(16)
+        data = sock.recv(CHUNK_SIZE)
         amount_received += len(data)
         print >> sys.stderr, 'received "%s"' % data
 
