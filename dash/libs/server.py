@@ -14,7 +14,7 @@ SERVER_PORT = 9487
 
 CHUNK_SIZE = 4096
 
-f = open("record.csv", "w")
+f = open("record.csv", "a")
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
