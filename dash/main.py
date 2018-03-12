@@ -81,9 +81,11 @@ while True:
                 yaw = float(ori[2])
                 pitch = float(ori[3])
                 roll = float(ori[4])
+                print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-                print(viewed_tiles)
-                tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], [], viewed_tiles)
+
+                print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 video...'
+                tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
 
                 print >> sys.stderr, 'sending data back to the client'
                 connection.sendall(data)
