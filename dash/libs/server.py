@@ -45,12 +45,17 @@ while True:
             print >> sys.stderr, 'received "%s"' % data
             
             if data:
+                # server info
                 f.write(str(SERVER_ADDR) + ",")
                 f.write(str(SERVER_PORT) + ",")
                 ts = time.time()
                 f.write(str(ts) + ",")
+
+                # client info
                 f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
-                f.write(data)
+                ori = data.split(",")
+                f.write(str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]))
+
                 print >> sys.stderr, 'sending data back to the client'
                 connection.sendall(data)
             else:
