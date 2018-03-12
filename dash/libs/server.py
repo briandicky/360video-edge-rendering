@@ -17,7 +17,7 @@ SERVER_PORT = 9487
 CHUNK_SIZE = 4096
 
 f = open("record.csv", "w")
-f.write("serverip,serverport,serverts,clientip,clientport,clientts,rawYaw,rawPitch,rawRoll\n")
+f.write("serverip,serverport,serverts,clientip,clientport,clientts,segid,rawYaw,rawPitch,rawRoll\n")
 # End of constants
 
 # Create a TCP/IP socket
@@ -54,7 +54,8 @@ while True:
                 # client info
                 f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
                 ori = data.split(",")
-                f.write(str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]))
+                f.write(str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," 
+                        + str(ori[3]) + "," + str(ori[4]))
 
                 print >> sys.stderr, 'sending data back to the client'
                 connection.sendall(data)

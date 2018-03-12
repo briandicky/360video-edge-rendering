@@ -16,6 +16,7 @@ SERVER_PORT = 9487
 
 CHUNK_SIZE = 4096
 
+segid = 1
 yaw = 30.0000583333
 pitch = 3.24956388889
 roll = -21.4974361111
@@ -31,9 +32,9 @@ sock.connect(server_address)
 
 try:
     # Send data
-    ori = (time.time(), yaw, pitch, roll)
-    print >> sys.stderr, 'sending (%s, %s, %s, %s)' % ori
-    mes = str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3])
+    ori = (time.time(), segid, yaw, pitch, roll)
+    print >> sys.stderr, 'sending (%s, %s, %s, %s, %s)' % ori
+    mes = str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4])
     sock.sendall(mes)
 
     # Look for the response
