@@ -11,6 +11,10 @@ import sys
 import time
 
 # Constants
+MODE_MIXED = 1
+#MODE_ONLY = 1
+#MODE_FOV = 1
+
 SERVER_ADDR = "140.114.77.125"
 SERVER_PORT = 9487
 

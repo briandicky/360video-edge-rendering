@@ -12,6 +12,7 @@ import math
 import subprocess
 from cal_prob import gen_prob
 
+# Path
 bitrate_path = "./bitrate/"
 qp_path = "./qp/"
 auto_path = "/auto/"
@@ -21,7 +22,7 @@ tmp_path = "./tmp/"
 def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, 
         low=[], medium=[], high=[]):
     video_list = []
-    video_list.append("dash_tiled_set1_init.mp4")
+    video_list.append("dash_set1_init.mp4")
 
     # Sort the tracks into tiled videos list
     for i in range(1, no_of_tiles+2, 1):
@@ -39,7 +40,7 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
             video_list.append("video_tiled_" + "high_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         else:
-            video_list.append("video_tiled_" + "low_" + "dash_" 
+            video_list.append("video_tiled_" + "low_" + "dash_"
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
 
     make_sure_path_exists(tmp_path)
@@ -63,6 +64,11 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
     subprocess.call('mv temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv output_%s.mp4 %s' % (seg_id, output_path), shell=True)
+
+
+def only_fov_tiles(no_of_tiles, seg_length, seg_id, 
+        low=[], medium=[], high=[]):
+    print("underconstruction")
 
 
 def make_sure_path_exists(path):
