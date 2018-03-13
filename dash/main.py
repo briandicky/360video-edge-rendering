@@ -15,6 +15,9 @@ from libs import tile_packger
 from libs import cal_prob
 
 # viewing constants
+MODE_MIXED = 0
+MODE_FOV = 1
+MODE_RENDER = 0
 #yaw = 
 #pitch = 
 #roll =
@@ -31,14 +34,11 @@ CHUNK_SIZE = 4096
 # compressed domain constants
 NO_OF_TILES = tile_w*tile_h
 SEG_LENGTH = 10
-#seg_id = 3
+#SEG_ID = 3
 
 f = open("record.csv", "w")
 f.write("serverip,serverport,serverts,clientip,clientport,clientts,segid,rawYaw,rawPitch,rawRoll\n")
 # End of constants
-
-#viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-#tile_packger.mixed_tiles_quality(no_of_tiles, SEG_LENGTH, seg_id, [], [], viewed_tiles)
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -86,8 +86,19 @@ while True:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
 
+                # MODE_MIXED: mixed different quality tiles 
+                # MODE_FOV: only viewed tiles 
+                # MODE_RENDER: TBD.
                 print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 format...'
-                tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+                if MODE_MIXED:
+                    tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+                elif MODE_FOV:
+                    tile_packger.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+                elif MODE_RENDER:
+                    print("Under-construction")
+                else:
+                    print("GGGGGGGGGGGGG")
+
 
                 # sending ERP mp4 format video back to client
                 print >> sys.stderr, '\nsending video back to the client'
