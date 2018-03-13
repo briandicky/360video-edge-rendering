@@ -68,7 +68,53 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
 
 def only_fov_tiles(no_of_tiles, seg_length, seg_id, 
         low=[], medium=[], high=[]):
-    print("underconstruction")
+    video = ""
+    remove_track = []
+
+    # Parse the viewed tile list
+    if low:
+        video = "video_tiled_low.mp4"
+        for i in range(3, no_of_tiles+2, 1):
+            if i not in low:
+                remove_track.append("-rem %s" % i)
+    elif medium:
+        video = "video_tiled_medium.mp4"
+        for i in range(3, no_of_tiles+2, 1):
+            if i not in medium:
+                remove_track.append("-rem %s" % i)
+    elif high:
+        video = "video_tiled_high.mp4"
+        for i in range(3, no_of_tiles+2, 1):
+            if i not in high:
+                remove_track.append("-rem %s" % i)
+    else:
+        print("It should not be here.")
+
+    # convert list to string
+    cmd = ""
+    for i in range(0, len(remove_track), 1):
+        cmd = cmd + str(remove_track[i]) + " "
+
+    make_sure_path_exists(tmp_path)
+    make_sure_path_exists(output_path)
+    clean_exsited_files(tmp_path, output_path, seg_id)
+
+    # Remove unwatched tiles
+    subprocess.call('MP4Box %s%s -out lost_temp_%s.mp4' % 
+            (cmd, (bitrate_path + str(seg_length) + "s/" + video), seg_id), shell=True)
+
+    # Extract the raw hevc bitstream
+    subprocess.call('MP4Box -raw 1 lost_temp_%s.mp4' % seg_id, shell=True)
+
+    # Repackage and generate new ERP video
+    subprocess.call('MP4Box -add lost_temp_%s_track1.hvc:fps=25 -new lost_output_%s.mp4' % 
+            (seg_id, seg_id), shell=True)
+
+    # Move all the files into folders
+    subprocess.call('mv lost_temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
+    subprocess.call('mv lost_temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
+    subprocess.call('mv lost_output_%s.mp4 %s' % (seg_id, output_path), shell=True)
+
 
 
 def make_sure_path_exists(path):
