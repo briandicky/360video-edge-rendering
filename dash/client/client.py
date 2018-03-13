@@ -40,7 +40,7 @@ try:
     # Receive video from server and save it
     filename = "output_" + str(ori[1]) + ".mp4"
     recvfile = open(filename, "w")
-    print >> sys.stderr, 'writing file...'
+    print >> sys.stderr, 'downloading file...'
     data = b''
     while True:
         tmp = sock.recv(CHUNK_SIZE)
@@ -49,7 +49,7 @@ try:
     
     recvfile.write(data)
     recvfile.close()
-    print >> sys.stderr, 'finished writing file'
+    print >> sys.stderr, 'finished downloading file'
 
 finally:
     print >> sys.stderr, 'closing socket'
