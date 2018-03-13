@@ -49,7 +49,8 @@ print >> sys.stderr, 'starting up on %s port %s' % server_address
 sock.bind(server_address)
 
 # Listen for incoming connections
-sock.listen(1)
+# Specifies the maximum number of queued connections (usually 5)
+sock.listen(5)
 
 while True:
     # Wait for a connection 
@@ -77,6 +78,7 @@ while True:
                 f.write(str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," 
                         + str(ori[3]) + "," + str(ori[4]))
 
+                # calculate orientation and repackage tiled video
                 seg_id = int(ori[1])
                 yaw = float(ori[2])
                 pitch = float(ori[3])
@@ -84,11 +86,16 @@ while True:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
 
-                print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 video...'
+                print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 format...'
                 tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
 
-                print >> sys.stderr, 'sending data back to the client'
-                connection.sendall(data)
+                # sending ERP mp4 format video back to client
+                print >> sys.stderr, '\nsending video back to the client'
+                path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
+                video = open(path_of_video).read() 
+                connection.send(video)
+                print >> sys.stderr, 'finished sending video'
+                #connection.sendall(data)
             else:
                 print >> sys.stderr, 'no more data from', client_address
                 break
