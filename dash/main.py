@@ -12,7 +12,6 @@ import math
 import socket
 import time
 from libs import tile_packger 
-from libs import cal_prob
 
 # viewing constants
 MODE_MIXED = 0
@@ -103,7 +102,16 @@ while True:
 
                 # sending ERP mp4 format video back to client
                 print >> sys.stderr, '\nsending video back to the client'
-                path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
+                if MODE_MIXED:
+                    path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
+                elif MODE_FOV:
+                    path_of_video = "./output/" + "lost_output_" + str(seg_id) + ".mp4"
+                elif MODE_RENDER:
+                    path_of_video = "./output/" + "render_output_" + str(seg_id) + ".mp4"
+                else:
+                    print("GGGGGGGGGGGGG")
+                    exit(0)
+
                 video = open(path_of_video).read() 
                 connection.send(video)
                 print >> sys.stderr, 'finished sending video'

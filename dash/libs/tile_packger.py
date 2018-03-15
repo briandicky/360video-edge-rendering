@@ -100,20 +100,20 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
     clean_exsited_files(tmp_path, output_path, seg_id)
 
     # Remove unwatched tiles
-    subprocess.call('MP4Box %s%s -out lost_temp_%s.mp4' % 
+    subprocess.call('MP4Box %s%s -out temp_%s.mp4' % 
             (cmd, (bitrate_path + str(seg_length) + "s/" + video), seg_id), shell=True)
 
     # Extract the raw hevc bitstream
-    subprocess.call('MP4Box -raw 1 lost_temp_%s.mp4' % seg_id, shell=True)
+    subprocess.call('MP4Box -raw 1 temp_%s.mp4' % seg_id, shell=True)
 
     # Repackage and generate new ERP video
-    subprocess.call('MP4Box -add lost_temp_%s_track1.hvc:fps=25 -new lost_output_%s.mp4' % 
+    subprocess.call('MP4Box -add temp_%s_track1.hvc:fps=25 -new output_%s.mp4' % 
             (seg_id, seg_id), shell=True)
 
     # Move all the files into folders
-    subprocess.call('mv lost_temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
-    subprocess.call('mv lost_temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
-    subprocess.call('mv lost_output_%s.mp4 %s' % (seg_id, output_path), shell=True)
+    subprocess.call('mv temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
+    subprocess.call('mv temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
+    subprocess.call('mv output_%s.mp4 %s' % (seg_id, output_path), shell=True)
 
 
 def render_fov_local(no_of_tiles, seg_length, seg_id, 
@@ -155,7 +155,7 @@ def clean_exsited_files(tmp_path, output_path, seg_id):
 
 def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
     # gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-    prob = gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+    prob = cal_prob.gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
 
     tiles = []
     for i in range(0, len(prob), 1):
@@ -165,7 +165,3 @@ def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
     corr_tiles = [j+2 for j in tiles]
     print(corr_tiles)
     return corr_tiles
-
-
-# Testing
-#mixed_tiles_quality(9, 10, 1, [2, 3, 4], [5, 6, 7], [8., 9, 10])
