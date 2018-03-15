@@ -48,8 +48,6 @@ try:
 
     # recv chunks from server then save all of them
     data = ""
-    #sock.setblocking(False)
-    #sock.settimeout(5.0)
     while True:
         chunk = sock.recv(CHUNK_SIZE)
         print len(chunk)
