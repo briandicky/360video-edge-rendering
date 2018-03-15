@@ -9,6 +9,7 @@
 import socket 
 import sys 
 import time
+import struct
 
 # Constants
 SERVER_ADDR = "140.114.77.125"
@@ -37,16 +38,20 @@ try:
     mes = str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4])
     sock.sendall(mes)
 
-    # Receive video from server and save it
+    # Receive video from server
     filename = "output_" + str(ori[1]) + ".mp4"
     recvfile = open(filename, "w")
     print >> sys.stderr, 'downloading file...'
-    data = b''
+
+    # recv chunks from server then save all of them
+    data = ""
     while True:
-        tmp = sock.recv(CHUNK_SIZE)
-        data += tmp
-        if len(tmp) < CHUNK_SIZE: break
+        chunk = sock.recv(4096)
+        if len(chunk) < 4096:
+            break 
+        data += chunk
     
+    data += chunk
     recvfile.write(data)
     recvfile.close()
     print >> sys.stderr, 'finished downloading file'

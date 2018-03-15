@@ -10,7 +10,11 @@ import os
 import sys
 import math
 import socket
-import time
+import time 
+import errno
+import struct
+import pickle
+from socket import error as SocketError
 from libs import tile_packger 
 
 # viewing constants
@@ -99,26 +103,25 @@ while True:
                     print("GGGGGGGGGGGGG")
                     exit(0)
 
-
                 # sending ERP mp4 format video back to client
                 print >> sys.stderr, '\nsending video back to the client'
-                if MODE_MIXED:
-                    path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
-                elif MODE_FOV:
-                    path_of_video = "./output/" + "lost_output_" + str(seg_id) + ".mp4"
-                elif MODE_RENDER:
-                    path_of_video = "./output/" + "render_output_" + str(seg_id) + ".mp4"
-                else:
-                    print("GGGGGGGGGGGGG")
-                    exit(0)
-
+                path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
                 video = open(path_of_video).read() 
-                connection.send(video)
+                # seperate video into samll chunks then transmit each of them
+                count = 0
+                while count < len(video):
+                    chunk = video[count:count+4096]
+                    connection.sendall(chunk)
+                    count += 4096
                 print >> sys.stderr, 'finished sending video'
                 #connection.sendall(data)
             else:
                 print >> sys.stderr, 'no more data from', client_address
                 break
+    except SocketError as e:
+        if e.errno != errno.ECONNRESET:
+            raise # Not error we are looking for
+        pass # Handle error here.
     finally:
         # Clean up the connection
         connection.close()
