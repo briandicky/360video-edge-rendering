@@ -18,8 +18,8 @@ from socket import error as SocketError
 from libs import tile_packger 
 
 # viewing constants
-MODE_MIXED = 0
-MODE_FOV = 1
+MODE_MIXED = 1
+MODE_FOV = 0
 MODE_RENDER = 0
 #yaw = 
 #pitch = 
@@ -64,60 +64,61 @@ while True:
         print >> sys.stderr, 'connection from', client_address
 
         # Receive the data in small chunks and retransmit it
-        while True:
-            data = connection.recv(CHUNK_SIZE)
-            print >> sys.stderr, 'received "%s"' % data
-            
-            if data:
-                # server info
-                f.write(str(SERVER_ADDR) + ",")
-                f.write(str(SERVER_PORT) + ",")
-                ts = time.time()
-                f.write(str(ts) + ",")
+        data = connection.recv(CHUNK_SIZE)
+        print >> sys.stderr, 'received "%s"' % data
+        
+        if data:
+            # server info
+            f.write(str(SERVER_ADDR) + ",")
+            f.write(str(SERVER_PORT) + ",")
+            ts = time.time()
+            f.write(str(ts) + ",")
 
-                # client info
-                f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
-                ori = data.split(",")
-                f.write(str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," 
-                        + str(ori[3]) + "," + str(ori[4]))
+            # client info
+            f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
+            ori = data.split(",")
+            f.write(str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," 
+                    + str(ori[3]) + "," + str(ori[4]))
+            f.write("\n")
 
-                # calculate orientation and repackage tiled video
-                seg_id = int(ori[1])
-                yaw = float(ori[2])
-                pitch = float(ori[3])
-                roll = float(ori[4])
-                print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
-                viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+            # calculate orientation and repackage tiled video
+            seg_id = int(ori[1])
+            yaw = float(ori[2])
+            pitch = float(ori[3])
+            roll = float(ori[4])
+            print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
+            viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
 
-                # MODE_MIXED: mixed different quality tiles 
-                # MODE_FOV: only viewed tiles 
-                # MODE_RENDER: TBD.
-                print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 format...'
-                if MODE_MIXED:
-                    tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
-                elif MODE_FOV:
-                    tile_packger.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
-                elif MODE_RENDER:
-                    tile_packger.render_fov_local(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
-                else:
-                    print("GGGGGGGGGGGGG")
-                    exit(0)
-
-                # sending ERP mp4 format video back to client
-                print >> sys.stderr, '\nsending video back to the client'
-                path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
-                video = open(path_of_video).read() 
-                # seperate video into samll chunks then transmit each of them
-                count = 0
-                while count < len(video):
-                    chunk = video[count:count+4096]
-                    connection.sendall(chunk)
-                    count += 4096
-                print >> sys.stderr, 'finished sending video'
-                #connection.sendall(data)
+            # MODE_MIXED: mixed different quality tiles 
+            # MODE_FOV: only viewed tiles 
+            # MODE_RENDER: TBD.
+            print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 format...'
+            if MODE_MIXED:
+                tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+            elif MODE_FOV:
+                tile_packger.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+            elif MODE_RENDER:
+                tile_packger.render_fov_local(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
             else:
-                print >> sys.stderr, 'no more data from', client_address
-                break
+                print("GGGGGGGGGGGGG")
+                exit(0)
+
+            # sending ERP mp4 format video back to client
+            print >> sys.stderr, '\nsending video back to the client'
+            path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
+            video = open(path_of_video).read() 
+            # seperate video into samll chunks then transmit each of them
+            count = 0
+            while count < len(video):
+                chunk = video[count:count+CHUNK_SIZE]
+                connection.sendall(chunk)
+                count += CHUNK_SIZE
+            print >> sys.stderr, 'finished sending video\n'
+            connection.close()
+            #connection.sendall(data)
+        else:
+            print >> sys.stderr, 'no more data from\n', client_address
+            break
     except SocketError as e:
         if e.errno != errno.ECONNRESET:
             raise # Not error we are looking for
