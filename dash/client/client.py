@@ -50,7 +50,6 @@ try:
     data = ""
     while True:
         chunk = sock.recv(CHUNK_SIZE)
-        print len(chunk)
         data += chunk
         if not chunk: break 
     
