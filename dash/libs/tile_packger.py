@@ -116,6 +116,10 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
     subprocess.call('mv lost_output_%s.mp4 %s' % (seg_id, output_path), shell=True)
 
 
+def render_fov_local(no_of_tiles, seg_length, seg_id, 
+        low=[], mediun=[], high=[]):
+    print("Under-construction")
+
 
 def make_sure_path_exists(path):
     try:

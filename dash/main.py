@@ -95,9 +95,10 @@ while True:
                 elif MODE_FOV:
                     tile_packger.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
                 elif MODE_RENDER:
-                    print("Under-construction")
+                    tile_packger.render_fov_local(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
                 else:
                     print("GGGGGGGGGGGGG")
+                    exit(0)
 
 
                 # sending ERP mp4 format video back to client
