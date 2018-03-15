@@ -10,7 +10,7 @@ import os
 import sys 
 import math 
 import subprocess
-from cal_prob import gen_prob
+from libs import cal_prob
 
 # Path
 bitrate_path = "./bitrate/"
