@@ -10,6 +10,9 @@ import socket
 import sys 
 import time
 import struct
+import errno
+from socket import error as SocketError
+
 
 # Constants
 SERVER_ADDR = "140.114.77.125"
@@ -46,15 +49,17 @@ try:
     # recv chunks from server then save all of them
     data = ""
     while True:
-        chunk = sock.recv(4096)
-        if len(chunk) < 4096:
-            break 
+        chunk = sock.recv(CHUNK_SIZE)
         data += chunk
+        if not chunk: break 
     
-    data += chunk
     recvfile.write(data)
     recvfile.close()
     print >> sys.stderr, 'finished downloading file'
+
+except SocketError as e:
+    print("SocketError")
+    # do somthing here
 
 finally:
     print >> sys.stderr, 'closing socket'
