@@ -18,8 +18,8 @@ from socket import error as SocketError
 from libs import tile_packger 
 
 # viewing constants
-MODE_MIXED = 1
-MODE_FOV = 0
+MODE_MIXED = 0
+MODE_FOV = 1
 MODE_RENDER = 0
 #yaw = 
 #pitch = 
@@ -108,14 +108,14 @@ while True:
             path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
             video = open(path_of_video).read() 
             # seperate video into samll chunks then transmit each of them
-            count = 0
-            while count < len(video):
-                chunk = video[count:count+CHUNK_SIZE]
-                connection.sendall(chunk)
-                count += CHUNK_SIZE
+            #count = 0
+            #while count < len(video):
+            #    chunk = video[count:count+CHUNK_SIZE]
+            #    connection.sendall(chunk)
+            #    count += CHUNK_SIZE
             print >> sys.stderr, 'finished sending video\n'
+            connection.sendall(video)
             connection.close()
-            #connection.sendall(data)
         else:
             print >> sys.stderr, 'no more data from\n', client_address
             break
