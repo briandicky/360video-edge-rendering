@@ -68,51 +68,76 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
 
 def only_fov_tiles(no_of_tiles, seg_length, seg_id, 
         low=[], medium=[], high=[]):
-    video = ""
-    remove_track = []
+    video_list = []
+    video_list.append("dash_set1_init.mp4")
+                                                                     
+    # Sort the tracks into tiled videos list
+    for i in range(1, no_of_tiles+2, 1):
+        if i == 1:
+            # track1 is needed
+            video_list.append("video_tiled_" + "low_" + "dash_" 
+                    + "track" + str(i) + "_" + str(seg_id) + ".m4s")
+        elif i in low:
+            video_list.append("video_tiled_" + "low_" + "dash_" 
+                    + "track" + str(i) + "_" + str(seg_id) + ".m4s")
+        elif i in medium:
+            video_list.append("video_tiled_" + "medium_" + "dash_" 
+                    + "track" + str(i) + "_" + str(seg_id) + ".m4s")
+        elif i in high:
+            video_list.append("video_tiled_" + "high_" + "dash_" 
+                    + "track" + str(i) + "_" + str(seg_id) + ".m4s")
+        else:
+            video_list.append("video_tiled_" + "low_" + "dash_"
+                    + "track" + str(i) + "_" + str(seg_id) + ".m4s")
+                                                                     
+    # Concatenate init track and each tiled tracks
+    for i in range(0, len(video_list), 1):
+        subprocess.call('cat %s >> temp_%s.mp4' % 
+                ( (bitrate_path + str(seg_length) + "s" + auto_path 
+                    + video_list[i]), seg_id), shell=True)
 
-    # Parse the viewed tile list
+    # Parse the viewed tile list to create remove list
+    remove_track = []
     if low:
-        video = "video_tiled_low.mp4"
         for i in range(3, no_of_tiles+2, 1):
             if i not in low:
                 remove_track.append("-rem %s" % i)
     elif medium:
-        video = "video_tiled_medium.mp4"
         for i in range(3, no_of_tiles+2, 1):
             if i not in medium:
                 remove_track.append("-rem %s" % i)
     elif high:
-        video = "video_tiled_high.mp4"
         for i in range(3, no_of_tiles+2, 1):
             if i not in high:
                 remove_track.append("-rem %s" % i)
     else:
         print("It should not be here.")
 
-    # convert list to string
+    # convert reomve list to string
     cmd = ""
     for i in range(0, len(remove_track), 1):
         cmd = cmd + str(remove_track[i]) + " "
 
+    # Check path and files existed or not
     make_sure_path_exists(tmp_path)
     make_sure_path_exists(output_path)
     clean_exsited_files(tmp_path, output_path, seg_id)
 
     # Remove unwatched tiles
-    subprocess.call('MP4Box %s%s -out temp_%s.mp4' % 
-            (cmd, (bitrate_path + str(seg_length) + "s/" + video), seg_id), shell=True)
+    subprocess.call('MP4Box %s temp_%s.mp4 -out lost_temp_%s.mp4' % 
+            (cmd, seg_id, seg_id), shell=True)
 
     # Extract the raw hevc bitstream
-    subprocess.call('MP4Box -raw 1 temp_%s.mp4' % seg_id, shell=True)
+    subprocess.call('MP4Box -raw 1 lost_temp_%s.mp4' % seg_id, shell=True)
 
     # Repackage and generate new ERP video
-    subprocess.call('MP4Box -add temp_%s_track1.hvc:fps=25 -new output_%s.mp4' % 
+    subprocess.call('MP4Box -add lost_temp_%s_track1.hvc:fps=25 -new output_%s.mp4' % 
             (seg_id, seg_id), shell=True)
 
     # Move all the files into folders
     subprocess.call('mv temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
-    subprocess.call('mv temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
+    subprocess.call('mv lost_temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
+    subprocess.call('mv lost_temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv output_%s.mp4 %s' % (seg_id, output_path), shell=True)
 
 
