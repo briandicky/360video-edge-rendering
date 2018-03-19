@@ -18,8 +18,8 @@ from socket import error as SocketError
 from libs import tile_packger 
 
 # viewing constants
-MODE_MIXED = 0
-MODE_FOV = 1
+MODE_MIXED = 1
+MODE_FOV = 0
 MODE_RENDER = 0
 #yaw = 
 #pitch = 

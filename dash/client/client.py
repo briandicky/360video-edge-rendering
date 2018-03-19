@@ -21,7 +21,7 @@ SERVER_PORT = 9487
 CHUNK_SIZE = 4096
 
 segid = 3
-yaw = 3.03605833333
+yaw = -120.03605833333
 pitch = 0.103563888889
 roll = -3.993
 # End of constants
