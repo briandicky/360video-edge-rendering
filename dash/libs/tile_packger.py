@@ -19,6 +19,9 @@ auto_path = "/auto/"
 output_path = "./output/"
 tmp_path = "./tmp/"
 
+# Constants
+FPS = 30
+
 def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, 
         low=[], medium=[], high=[]):
     video_list = []
@@ -57,8 +60,8 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
     subprocess.call('MP4Box -raw 1 temp_%s.mp4' % seg_id, shell=True)
 
     # Repackage and generate new ERP video
-    subprocess.call('MP4Box -add temp_%s_track1.hvc:fps=25 -new output_%s.mp4' % 
-            (seg_id, seg_id), shell=True)
+    subprocess.call('MP4Box -add temp_%s_track1.hvc:fps=%s -new output_%s.mp4' % 
+            (seg_id, FPS, seg_id), shell=True)
 
     # Move all the files into folders
     subprocess.call('mv temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
@@ -131,8 +134,8 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
     subprocess.call('MP4Box -raw 1 lost_temp_%s.mp4' % seg_id, shell=True)
 
     # Repackage and generate new ERP video
-    subprocess.call('MP4Box -add lost_temp_%s_track1.hvc:fps=25 -new output_%s.mp4' % 
-            (seg_id, seg_id), shell=True)
+    subprocess.call('MP4Box -add lost_temp_%s_track1.hvc:fps=%s -new output_%s.mp4' % 
+            (seg_id, FPS, seg_id), shell=True)
 
     # Move all the files into folders
     subprocess.call('mv temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
