@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #   Program:
-#       TBD.
+#       A program handles TCPSocket, listen command from clients, and render the vr view.
 #   Author:
 #       Wen-Chih, MosQuito, Lo
 #   Date:
