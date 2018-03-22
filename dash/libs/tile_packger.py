@@ -193,3 +193,6 @@ def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
     corr_tiles = [j+2 for j in tiles]
     print(corr_tiles)
     return corr_tiles
+
+def ori_2_viewport(yaw, ptich, fov_degreew, fov_degreeh):
+    print("Under-construction") 

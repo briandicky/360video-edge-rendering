@@ -8,13 +8,14 @@
 
 import os 
 import sys 
-from libs import cal_prob
 from libs import tile_packger
 
-# viewing constants
-MODE_MIXED = 1
+# Mode 
+MODE_MIXED = 0
 MODE_FOV = 0
-MODE_RENDER = 0
+MODE_RENDER = 1
+
+# viewing constants
 yaw = -120.03605833333
 pitch = 0.103563888889
 roll = -3.993
@@ -29,7 +30,15 @@ SEG_LENGTH = 10
 SEG_ID = 3
 
 # calculate viewer's orientation and repackage tiled video
-viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+if MODE_MIXED:
+    viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+elif MODE_FOV:
+    viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+elif MODE_RENDER:
+    viewed_tiles = tile_packger.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh)
+else:
+    print("GGGGGGGGGGGGG at calculating orientation")
+    exit(0)
 
 if MODE_MIXED:
     tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, SEG_ID, [], viewed_tiles, [])
@@ -38,5 +47,5 @@ elif MODE_FOV:
 elif MODE_RENDER:
     tile_packger.render_fov_local(NO_OF_TILES, SEG_LENGTH, SEG_ID, [], viewed_tiles, [])
 else:
-    print("GGGGGGGGGGGGG")
+    print("GGGGGGGGGGGGG at tile repackging")
     exit(0)
