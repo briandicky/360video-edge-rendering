@@ -1,7 +1,7 @@
 import os
 import cv2
 import math
-from PIL import Image
+from PIL import Image, ImageOps, ImageDraw
 
 YAW     = -1.03605833333
 PITCH   = 0.103563888889
@@ -81,9 +81,22 @@ def ori_2_fixation(yaw, pitch):
     fixation.append([round(right_x_ori), round(y_ori)])
     return fixation
 
+def viewport_gen(frame):
+    size = (128, 128)
+    mask = Image.new('L', size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0) + size, fill=255)
+    im = Image.open(frame)
+    output = ImageOps.fit(im, mask.size, centering=(0.5, 0.5))
+    output.putalpha(mask)
+    output.save('output.png')
+    return None
+
 if __name__ == "__main__":
     # create folder and clip video into frames
     video_2_image('./video_low_4s.mp4')
 
     fixation = ori_2_fixation(YAW, PITCH)
     print(fixation)
+
+    viewport_gen('./frame/frame1.png')
