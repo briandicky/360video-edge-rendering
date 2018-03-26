@@ -21,9 +21,6 @@ from libs import tile_packger
 MODE_MIXED = 1
 MODE_FOV = 0
 MODE_RENDER = 0
-#yaw = 
-#pitch = 
-#roll =
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
@@ -37,7 +34,11 @@ CHUNK_SIZE = 4096
 # compressed domain constants
 NO_OF_TILES = tile_w*tile_h
 SEG_LENGTH = 10
-#SEG_ID = 3
+
+# debugging messages 
+print >> sys.stderr, "No. of tiles = %s x %s = %s" % (tile_w, tile_h, NO_OF_TILES)
+print >> sys.stderr, "FoV width = %s, FoV height = %s" % (fov_degreew, fov_degreeh)
+print >> sys.stderr, "Segment length = %s sec\n" % SEG_LENGTH
 
 f = open("record.csv", "w")
 f.write("serverip,serverport,serverts,clientip,clientport,clientts,segid,rawYaw,rawPitch,rawRoll\n")

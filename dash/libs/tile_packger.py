@@ -26,23 +26,34 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
         low=[], medium=[], high=[]):
     video_list = []
     video_list.append("dash_set1_init.mp4")
+    print("dash_set1_init.mp4")
 
     # Sort the tracks into tiled videos list
     for i in range(1, no_of_tiles+2, 1):
         if i == 1:
             # track1 is needed
+            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
+                    + "_" + str(seg_id) + ".m4s")
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in low:
+            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
+                    + "_" + str(seg_id) + ".m4s")
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in medium:
+            print("video_tiled_" + "medium_" + "dash_" + "track" + str(i) 
+                    + "_" + str(seg_id) + ".m4s")
             video_list.append("video_tiled_" + "medium_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in high:
+            print("video_tiled_" + "high_" + "dash_" + "track" + str(i) 
+                    + "_" + str(seg_id) + ".m4s")
             video_list.append("video_tiled_" + "high_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         else:
+            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
+                    + "_" + str(seg_id) + ".m4s")
             video_list.append("video_tiled_" + "low_" + "dash_"
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
 
@@ -73,23 +84,34 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
         low=[], medium=[], high=[]):
     video_list = []
     video_list.append("dash_set1_init.mp4")
+    print("dash_set1_init.mp4")
                                                                      
     # Sort the tracks into tiled videos list
     for i in range(1, no_of_tiles+2, 1):
         if i == 1:
             # track1 is needed
+            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
+                    + "_" + str(seg_id) + ".m4s")
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in low:
+            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
+                    + "_" + str(seg_id) + ".m4s")
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in medium:
+            print("video_tiled_" + "medium_" + "dash_" + "track" + str(i) 
+                    + "_" + str(seg_id) + ".m4s")
             video_list.append("video_tiled_" + "medium_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in high:
+            print("video_tiled_" + "high_" + "dash_" + "track" + str(i) 
+                    + "_" + str(seg_id) + ".m4s")
             video_list.append("video_tiled_" + "high_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         else:
+            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
+                    + "_" + str(seg_id) + ".m4s")
             video_list.append("video_tiled_" + "low_" + "dash_"
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
                                                                      
