@@ -71,7 +71,7 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
     subprocess.call('MP4Box -raw 1 temp_%s.mp4' % seg_id, shell=True)
 
     # Repackage and generate new ERP video
-    subprocess.call('MP4Box -add temp_%s_track1.hvc:fps=%s -new output_%s.mp4' % 
+    subprocess.call('MP4Box -add temp_%s_track1.hvc:fps=%s -inter 0 -new output_%s.mp4' % 
             (seg_id, FPS, seg_id), shell=True)
 
     # Move all the files into folders
@@ -156,7 +156,7 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
     subprocess.call('MP4Box -raw 1 lost_temp_%s.mp4' % seg_id, shell=True)
 
     # Repackage and generate new ERP video
-    subprocess.call('MP4Box -add lost_temp_%s_track1.hvc:fps=%s -new output_%s.mp4' % 
+    subprocess.call('MP4Box -add lost_temp_%s_track1.hvc:fps=%s -inter 0 -new output_%s.mp4' % 
             (seg_id, FPS, seg_id), shell=True)
 
     # Move all the files into folders
