@@ -109,3 +109,4 @@ venv.bak/
 *.mp4
 *.hvc
 *.yuv
+*.csv
