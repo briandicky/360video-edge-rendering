@@ -101,7 +101,7 @@ cdef Pos3d outImgToXYZ(int i,int j,float tx,float ty,float tz,float a1,float b1,
     return sp
 
 # convert using an inverse transformation
-#def convertBack(imgIn,imgOut,fov_size,fov_degree,ctheta,cphi):
+# def convertBack(imgIn,imgOut,fov_size,fov_degree,ctheta,cphi):
 def cal_fovs(ctheta, cphi, float fov_degreew, float fov_degreeh, float tile_w, float tile_h, float fov_sizew, float fov_sizeh):
     probs=[0.0 for i in range(int(tile_w*tile_h))]
     cdef float theta, phi, tx, ty, tz, r
@@ -161,6 +161,7 @@ def cal_fovs(ctheta, cphi, float fov_degreew, float fov_degreeh, float tile_w, f
             # source img coords
             uf = int(1920.0*(theta+pi)/pi)%3840
             vf = int(1920.0*(pi/2-phi)/pi)%1920
+            # print(uf, vf)
             tile=floor(float(vf)/float(tile_sizeh))*tile_w+floor(float(uf)/float(tile_sizew))
             probs[int(tile)]=1
     return probs
@@ -174,3 +175,77 @@ def gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
     probs=cal_fovs(yaw,pitch,fov_degreew,fov_degreeh,float(tile_w),float(tile_h),fov_sizew,fov_sizeh)
     return probs
     
+# convert using an inverse transformation
+# def convertBack(imgIn,imgOut,fov_size,fov_degree,ctheta,cphi):
+def render_fovs(ctheta, cphi, float fov_degreew, float fov_degreeh, float tile_w, float tile_h, float fov_sizew, float fov_sizeh):
+    probs=[0.0 for i in range(int(tile_w*tile_h))]
+    cdef float theta, phi, tx, ty, tz, r
+    cdef float a, b, c, d, a1, b1, c1, a2, b2, c2
+    cdef norm1, norm2
+    cdef float d_square
+    cdef Pos3d sp_pos
+    cdef float uf, vf, ui, vi, u2, v2, mu, mv
+    cdef tile_sizeh, tile_sizew
+    tile_sizeh=int(1920.0/float(tile_h))
+    tile_sizew=int(3840.0/float(tile_w))
+    theta=ctheta
+    phi=cphi
+    #print ctheta, cphi
+    tx=R*sinf(radians(phi))*cosf(radians(theta))
+    ty=R*sinf(radians(phi))*sinf(radians(theta))
+    tz=R*cosf(radians(phi))
+    #print tx,ty,tz
+    a = tx
+    b = ty
+    c = tz
+    d = -(tx*tx+ty*ty+tz*tz)
+    if theta==0 and (phi==0 or phi==180):
+        a1=-1
+        b1=0
+        c1=0
+        a2=0
+        b2=-1
+        c2=0
+    else:
+        a1 = b
+        b1 = -a
+        c1 = 0
+        a2 = a*c
+        b2 = b*c
+        c2 = -a*a-b*b
+
+    norm1=sqrt(a1*a1+b1*b1+c1*c1)
+    norm2=sqrt(a2*a2+b2*b2+c2*c2)
+    a1=a1/norm1
+    b1=b1/norm1
+    c1=c1/norm1
+    a2=a2/norm2
+    b2=b2/norm2
+    c2=c2/norm2
+    
+    fixation = []
+    for i in xrange(0, int(fov_sizew)):
+        for j in xrange(0, int(fov_sizeh)):
+            # check whether it is in the circle
+            d_square=((i-(fov_sizew/2))*(i-(fov_sizew/2)))/(fov_sizew*fov_sizew/4)+((j-(fov_sizeh/2))*(j-(fov_sizeh/2)))/(fov_sizeh*fov_sizeh/4)
+            if d_square>1:
+                continue
+            sp_pos=outImgToXYZ(fov_sizew-i-1,j,tx,ty,tz,a1,b1,c1,a2,b2,c2,fov_degreew,fov_degreeh,fov_sizew,fov_sizeh)
+            theta = atan2(sp_pos.y,sp_pos.x) # range -pi to pi
+            r=hypot(sp_pos.x,sp_pos.y)
+            phi=atan2(sp_pos.z,r) # range -pi/2 to pi/2
+            # source img coords
+            uf = int(1920.0*(theta+pi)/pi)%3840
+            vf = int(1920.0*(pi/2-phi)/pi)%1920
+            fixation.append([uf, vf])
+            #tile=floor(float(vf)/float(tile_sizeh))*tile_w+floor(float(uf)/float(tile_sizew))
+            #probs[int(tile)]=1
+    return fixation
+
+def gen_fov(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
+    cdef float fov_sizew = int(float(fov_degreew)/360.0*3840.0)
+    cdef float fov_sizeh = int(float(fov_degreeh)/360.0*3840.0)
+    if yaw<0:
+        yaw=360+yaw
+    pitch=90-pitch
+    return render_fovs(yaw,pitch,fov_degreew,fov_degreeh,float(tile_w),float(tile_h),fov_sizew,fov_sizeh)
