@@ -22,6 +22,21 @@ tmp_path = "./tmp/"
 # Constants
 FPS = 30
 
+
+def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
+    # gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+    prob = cal_prob.gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+
+    tiles = []
+    for i in range(0, len(prob), 1):
+        if prob[i] == 1:
+            tiles.append(i)
+
+    corr_tiles = [j+2 for j in tiles]
+    print(corr_tiles)
+    return corr_tiles
+
+
 def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, 
         low=[], medium=[], high=[]):
     video_list = []
@@ -166,9 +181,15 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
     subprocess.call('mv output_%s.mp4 %s' % (seg_id, output_path), shell=True)
 
 
-def render_fov_local(no_of_tiles, seg_length, seg_id, 
-        low=[], mediun=[], high=[]):
-    print("Under-construction")
+def ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
+    fixation = cal_prob.gen_fov(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+    return fixation
+
+
+def render_fov_local(no_of_tiles, seg_length, seg_id, viewed_fov=[]):
+    print("Under-construction: libs/tile_packger.py/render_fov_local")
+    print(viewed_fov)
+    print(len(viewed_fov))
 
 
 def make_sure_path_exists(path):
@@ -201,20 +222,3 @@ def clean_exsited_files(tmp_path, output_path, seg_id):
     except OSError:
         print("File %s do not exsit." % rm_output)
         pass
-
-
-def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
-    # gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-    prob = cal_prob.gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-
-    tiles = []
-    for i in range(0, len(prob), 1):
-        if prob[i] == 1:
-            tiles.append(i)
-
-    corr_tiles = [j+2 for j in tiles]
-    print(corr_tiles)
-    return corr_tiles
-
-def ori_2_viewport(yaw, ptich, fov_degreew, fov_degreeh):
-    print("Under-construction") 

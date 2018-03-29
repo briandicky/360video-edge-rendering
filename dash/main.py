@@ -18,9 +18,9 @@ from socket import error as SocketError
 from libs import tile_packger 
 
 # viewing constants
-MODE_MIXED = 1
+MODE_MIXED = 0
 MODE_FOV = 0
-MODE_RENDER = 0
+MODE_RENDER = 1
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
@@ -87,8 +87,15 @@ while True:
             yaw = float(ori[2])
             pitch = float(ori[3])
             roll = float(ori[4])
-            print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
-            viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+            if MODE_MIXED:
+                print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
+                viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+            elif MODE_FOV:
+                print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
+                viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+            elif MODE_RENDER:
+                print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
+                viewed_fov = tile_packger.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
 
             # MODE_MIXED: mixed different quality tiles 
             # MODE_FOV: only viewed tiles 
@@ -99,7 +106,7 @@ while True:
             elif MODE_FOV:
                 tile_packger.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
             elif MODE_RENDER:
-                tile_packger.render_fov_local(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+                tile_packger.render_fov_local(NO_OF_TILES, SEG_LENGTH, seg_id, viewed_fov)
             else:
                 print("GGGGGGGGGGGGG")
                 exit(0)
