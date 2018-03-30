@@ -237,7 +237,7 @@ def render_fovs(ctheta, cphi, float fov_degreew, float fov_degreeh, float tile_w
             # source img coords
             uf = int(1920.0*(theta+pi)/pi)%3840
             vf = int(1920.0*(pi/2-phi)/pi)%1920
-            fixation.append([uf, vf])
+            fixation.append( (uf, vf) )
             #tile=floor(float(vf)/float(tile_sizeh))*tile_w+floor(float(uf)/float(tile_sizew))
             #probs[int(tile)]=1
     return fixation

@@ -4826,7 +4826,7 @@ static PyObject *__pyx_pf_4libs_8cal_prob_4render_fovs(CYTHON_UNUSED PyObject *_
  *             # source img coords
  *             uf = int(1920.0*(theta+pi)/pi)%3840             # <<<<<<<<<<<<<<
  *             vf = int(1920.0*(pi/2-phi)/pi)%1920
- *             fixation.append([uf, vf])
+ *             fixation.append( (uf, vf) )
  */
       __pyx_t_16 = (1920.0 * (__pyx_v_theta + __pyx_v_4libs_8cal_prob_pi));
       if (unlikely(__pyx_v_4libs_8cal_prob_pi == 0)) {
@@ -4854,7 +4854,7 @@ static PyObject *__pyx_pf_4libs_8cal_prob_4render_fovs(CYTHON_UNUSED PyObject *_
  *             # source img coords
  *             uf = int(1920.0*(theta+pi)/pi)%3840
  *             vf = int(1920.0*(pi/2-phi)/pi)%1920             # <<<<<<<<<<<<<<
- *             fixation.append([uf, vf])
+ *             fixation.append( (uf, vf) )
  *             #tile=floor(float(vf)/float(tile_sizeh))*tile_w+floor(float(uf)/float(tile_sizew))
  */
       __pyx_t_16 = (1920.0 * ((__pyx_v_4libs_8cal_prob_pi / 2.0) - __pyx_v_phi));
@@ -4882,7 +4882,7 @@ static PyObject *__pyx_pf_4libs_8cal_prob_4render_fovs(CYTHON_UNUSED PyObject *_
       /* "libs/cal_prob.pyx":240
  *             uf = int(1920.0*(theta+pi)/pi)%3840
  *             vf = int(1920.0*(pi/2-phi)/pi)%1920
- *             fixation.append([uf, vf])             # <<<<<<<<<<<<<<
+ *             fixation.append( (uf, vf) )             # <<<<<<<<<<<<<<
  *             #tile=floor(float(vf)/float(tile_sizeh))*tile_w+floor(float(uf)/float(tile_sizew))
  *             #probs[int(tile)]=1
  */
@@ -4890,12 +4890,12 @@ static PyObject *__pyx_pf_4libs_8cal_prob_4render_fovs(CYTHON_UNUSED PyObject *_
       __Pyx_GOTREF(__pyx_t_13);
       __pyx_t_1 = PyFloat_FromDouble(__pyx_v_vf); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_11 = PyList_New(2); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_11 = PyTuple_New(2); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_11);
       __Pyx_GIVEREF(__pyx_t_13);
-      PyList_SET_ITEM(__pyx_t_11, 0, __pyx_t_13);
+      PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_13);
       __Pyx_GIVEREF(__pyx_t_1);
-      PyList_SET_ITEM(__pyx_t_11, 1, __pyx_t_1);
+      PyTuple_SET_ITEM(__pyx_t_11, 1, __pyx_t_1);
       __pyx_t_13 = 0;
       __pyx_t_1 = 0;
       __pyx_t_17 = __Pyx_PyList_Append(__pyx_v_fixation, __pyx_t_11); if (unlikely(__pyx_t_17 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
