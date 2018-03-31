@@ -33,7 +33,7 @@ CHUNK_SIZE = 4096
 
 # compressed domain constants
 NO_OF_TILES = tile_w*tile_h
-SEG_LENGTH = 10
+SEG_LENGTH = 4
 
 # debugging messages 
 print >> sys.stderr, "No. of tiles = %s x %s = %s" % (tile_w, tile_h, NO_OF_TILES)
@@ -99,13 +99,14 @@ while True:
 
             # MODE_MIXED: mixed different quality tiles 
             # MODE_FOV: only viewed tiles 
-            # MODE_RENDER: TBD.
+            # MODE_RENDER: only render the pixels in user's viewport
             print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 format...'
             if MODE_MIXED:
                 tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
             elif MODE_FOV:
                 tile_packger.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
             elif MODE_RENDER:
+                tile_packger.video_2_image('./video_low_4s.mp4')
                 tile_packger.render_fov_local(NO_OF_TILES, SEG_LENGTH, seg_id, viewed_fov)
             else:
                 print("GGGGGGGGGGGGG")

@@ -10,7 +10,9 @@ import os
 import sys 
 import math 
 import subprocess
+import cv2
 from libs import cal_prob
+from PIL import Image, ImageDraw
 
 # Path
 bitrate_path = "./bitrate/"
@@ -18,10 +20,12 @@ qp_path = "./qp/"
 auto_path = "/auto/"
 output_path = "./output/"
 tmp_path = "./tmp/"
+frame_path = "./frame/"
 
 # Constants
 FPS = 30
 
+# ================================================================= #
 
 def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
     # gen_prob(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
@@ -182,14 +186,76 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
 
 
 def ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
-    fixation = cal_prob.gen_fov(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-    return fixation
+    return cal_prob.gen_fov(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+
+
+def video_2_image(path):
+    make_sure_path_exists(frame_path)
+    vidcap = cv2.VideoCapture(path)
+    success, frame = vidcap.read()
+    count = 1 
+    success = True
+
+    while success:
+        # save frame as PNG format
+        cv2.imwrite(frame_path + "frame%d.png" % count, frame)
+        success, frame = vidcap.read()
+        print "Clip a new frame:", count
+        count += 1 
 
 
 def render_fov_local(no_of_tiles, seg_length, seg_id, viewed_fov=[]):
-    print("Under-construction: libs/tile_packger.py/render_fov_local")
-    print(viewed_fov)
-    print(len(viewed_fov))
+    # Check path and files existed or not
+    make_sure_path_exists(tmp_path)
+    make_sure_path_exists(output_path)
+
+    fps = seg_length * FPS
+
+    all_frame = []
+    for k in range(1, fps + 1, 1):
+        # open the image which can be many different formats
+        ori_path = frame_path + "frame" + str(k) + ".png"
+        im = Image.open(ori_path, "r")
+
+        # get image size
+        width, height = im.size
+
+        # create new image and a pixel map
+        new = create_image(width, height)
+        pix = new.load()
+
+        # get the pixel in viewport
+        size = len(viewed_fov)
+        for x in range(0, size, 1):
+            i = viewed_fov[x][0]
+            j = viewed_fov[x][1]
+            #print(i, j)
+            pix[i, j] = get_pixel(im, i, j)
+
+        path = tmp_path + "fov_temp" + str(k) + ".png" 
+        all_frame.append(path)
+        new.save(path, "PNG")
+        print >> sys.stderr, "frame:" + path + " done."
+
+    # concatenate all the frame into one video
+    ffmpeg = "ffmpeg -framerate " + str(FPS) + " -y -i " + tmp_path + "fov_temp%d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p " + output_path + "output_%s.mp4" % seg_id
+    print >> sys.stderr, ffmpeg
+    subprocess.call(ffmpeg, shell=True)
+
+# Create a new image with the given size
+def create_image(i, j):
+    image = Image.new("RGB", (i, j))
+    return image
+
+
+def get_pixel(image, i, j):
+    # inside image bounds or not 
+    width, height = image.size 
+    if i > width or j > height:
+        return None
+    # get pixel
+    pixel = image.getpixel( (i, j) )
+    return pixel
 
 
 def make_sure_path_exists(path):
