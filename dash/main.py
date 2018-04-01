@@ -109,7 +109,7 @@ while True:
                 tile_packger.video_2_image('./video_low_4s.mp4')
                 tile_packger.render_fov_local(NO_OF_TILES, SEG_LENGTH, seg_id, viewed_fov)
             else:
-                print("GGGGGGGGGGGGG")
+                print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
 
             # sending ERP mp4 format video back to client

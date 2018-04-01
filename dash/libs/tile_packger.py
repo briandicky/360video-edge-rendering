@@ -45,34 +45,34 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
         low=[], medium=[], high=[]):
     video_list = []
     video_list.append("dash_set1_init.mp4")
-    print("dash_set1_init.mp4")
+    print >> sys.stderr, 'dash_set1_init.mp4'
 
     # Sort the tracks into tiled videos list
     for i in range(1, no_of_tiles+2, 1):
         if i == 1:
             # track1 is needed
-            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
-                    + "_" + str(seg_id) + ".m4s")
+            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in low:
-            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
-                    + "_" + str(seg_id) + ".m4s")
+            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in medium:
-            print("video_tiled_" + "medium_" + "dash_" + "track" + str(i) 
-                    + "_" + str(seg_id) + ".m4s")
+            debug_msg = "video_tiled_" + "medium_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "medium_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in high:
-            print("video_tiled_" + "high_" + "dash_" + "track" + str(i) 
-                    + "_" + str(seg_id) + ".m4s")
+            debug_msg = "video_tiled_" + "high_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "high_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         else:
-            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
-                    + "_" + str(seg_id) + ".m4s")
+            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_"
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
 
@@ -103,34 +103,34 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
         low=[], medium=[], high=[]):
     video_list = []
     video_list.append("dash_set1_init.mp4")
-    print("dash_set1_init.mp4")
+    print >> sys.stderr, 'dash_set1_init.mp4'
                                                                      
     # Sort the tracks into tiled videos list
     for i in range(1, no_of_tiles+2, 1):
         if i == 1:
             # track1 is needed
-            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
-                    + "_" + str(seg_id) + ".m4s")
+            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in low:
-            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
-                    + "_" + str(seg_id) + ".m4s")
+            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in medium:
-            print("video_tiled_" + "medium_" + "dash_" + "track" + str(i) 
-                    + "_" + str(seg_id) + ".m4s")
+            debug_msg = "video_tiled_" + "medium_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "medium_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in high:
-            print("video_tiled_" + "high_" + "dash_" + "track" + str(i) 
-                    + "_" + str(seg_id) + ".m4s")
+            debug_msg = "video_tiled_" + "high_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "high_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         else:
-            print("video_tiled_" + "low_" + "dash_" + "track" + str(i) 
-                    + "_" + str(seg_id) + ".m4s")
+            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_"
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
                                                                      
@@ -238,12 +238,17 @@ def render_fov_local(no_of_tiles, seg_length, seg_id, viewed_fov=[]):
         print >> sys.stderr, "frame:" + path + " done."
 
     # concatenate all the frame into one video
+    concat_image_2_video(seg_id)
+
+
+def concat_image_2_video(seg_id):
+    # concatenate all the frame into one video
     ffmpeg = "ffmpeg -framerate " + str(FPS) + " -y -i " + tmp_path + "fov_temp%d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p " + output_path + "output_%s.mp4" % seg_id
-    print >> sys.stderr, ffmpeg
     subprocess.call(ffmpeg, shell=True)
 
-# Create a new image with the given size
+
 def create_image(i, j):
+    # Create a new image with the given size
     image = Image.new("RGB", (i, j))
     return image
 
@@ -262,7 +267,7 @@ def make_sure_path_exists(path):
     try:
         os.makedirs(path)
     except OSError:
-        print("Folder %s already exsits." % path)
+        print >> sys.stderr, 'Folder %s already exsits.' % path
         pass
 
 
@@ -272,19 +277,19 @@ def clean_exsited_files(tmp_path, output_path, seg_id):
         rm_temp_mp4 = tmp_path + "temp_" + str(seg_id) + ".mp4" 
         os.remove(rm_temp_mp4)
     except OSError:
-        print("File %s do not exsit." % rm_temp_mp4)
+        print >> sys.stderr, 'File %s do not exsit.' % rm_temp_mp4
         pass
 
     try:
         rm_temp_hvc = tmp_path + "temp_" + str(seg_id) + "_track1.hvc"
         os.remove(rm_temp_hvc)
     except OSError:
-        print("File %s do not exsit." % rm_temp_hvc)
+        print >> sys.stderr, 'File %s do not exsit.' % rm_temp_hvc
         pass 
 
     try:
         rm_output = output_path + "output_" + str(seg_id) + ".mp4"
         os.remove(rm_output)
     except OSError:
-        print("File %s do not exsit." % rm_output)
+        print >> sys.stderr, 'File %s do not exsit.' % rm_output
         pass
