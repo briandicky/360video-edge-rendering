@@ -137,6 +137,7 @@ while True:
             print >> sys.stderr, '\nsending video back to the client'
             path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
             video = open(path_of_video).read() 
+            connection.sendall(video)
             # seperate video into samll chunks then transmit each of them
             #count = 0
             #while count < len(video):
@@ -144,7 +145,6 @@ while True:
             #    connection.sendall(chunk)
             #    count += CHUNK_SIZE
             print >> sys.stderr, 'finished sending video\n'
-            connection.sendall(video)
             connection.close()
         else:
             print >> sys.stderr, 'no more data from\n', client_address
