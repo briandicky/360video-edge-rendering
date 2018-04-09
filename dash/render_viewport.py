@@ -1,11 +1,20 @@
+#!/usr/bin/env python
 import os
 import cv2
+import sys
 import math
 from PIL import Image, ImageOps, ImageDraw
 
 YAW     = -1.03605833333
 PITCH   = 0.103563888889
 ROLL    = -3.993
+fov_degreew = 100
+fov_degreeh = 100
+tile_w = 3
+tile_h = 3
+
+NO_OF_TILES = tile_w*tile_h
+SEG_LENGTH = 10
 
 WIDTH   = 3840
 HEIGHT  = 1920
@@ -15,15 +24,6 @@ RADIUS  = WIDTH / (2 * math.pi)
 def create_path(path):
     if not os.path.isdir(path):
         os.makedirs(path)
-
-def get_pixel(image, i, j):
-    # inside image bounds or not 
-    width, height = image.size
-    if i > width or j > height:
-        return None
-    # get pixel 
-    pixel = image.getpixel( (i, j) )
-    return pixel
 
 def video_2_image(path):
     create_path('./frame/')
@@ -81,22 +81,24 @@ def ori_2_fixation(yaw, pitch):
     fixation.append([round(right_x_ori), round(y_ori)])
     return fixation
 
-def viewport_gen(frame):
-    size = (128, 128)
-    mask = Image.new('L', size, 0)
-    draw = ImageDraw.Draw(mask)
-    draw.ellipse((0, 0) + size, fill=255)
-    im = Image.open(frame)
-    output = ImageOps.fit(im, mask.size, centering=(0.5, 0.5))
-    output.putalpha(mask)
-    output.save('output.png')
-    return None
+def get_pixel(image, i, j):
+    # inside image bounds or not 
+    width, height = image.size
+    if i > width or j > height:
+        return None
+    # get pixel 
+    pixel = image.getpixel( (i, j) )
+    return pixel
 
 if __name__ == "__main__":
     # create folder and clip video into frames
-    video_2_image('./video_low_4s.mp4')
+    #video_2_image('./video_low_4s.mp4')
 
-    fixation = ori_2_fixation(YAW, PITCH)
-    print(fixation)
+    im = Image.open('./frame/frame1.png', 'r')
+    new = im.load()
+    
+    for i in range(0, 100, 1):
+        for j in range(0, 100, 1):
+            new[i, j] = (0, 0, 0)
 
-    viewport_gen('./frame/frame1.png')
+    im.show()
