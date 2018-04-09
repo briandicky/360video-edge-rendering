@@ -34,14 +34,19 @@ CHUNK_SIZE = 4096
 # compressed domain constants
 NO_OF_TILES = tile_w*tile_h
 SEG_LENGTH = 4
+FPS = 30
 
 # debugging messages 
 print >> sys.stderr, "No. of tiles = %s x %s = %s" % (tile_w, tile_h, NO_OF_TILES)
 print >> sys.stderr, "FoV width = %s, FoV height = %s" % (fov_degreew, fov_degreeh)
 print >> sys.stderr, "Segment length = %s sec\n" % SEG_LENGTH
 
-f = open("record.csv", "w")
+# open the file for output messages
+f = open("./record.csv", "w")
 f.write("serverip,serverport,serverts,clientip,clientport,clientts,segid,rawYaw,rawPitch,rawRoll\n")
+
+# user orientation log file
+user = open("./game_user03_orientation.csv", "r")
 # End of constants
 
 # Create a TCP/IP socket
@@ -94,8 +99,10 @@ while True:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
             elif MODE_RENDER:
-                print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
-                viewed_fov = tile_packger.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+                tile_packger.video_2_image('./video_low.mp4')
+            else:
+                print >> sys.stderr, 'GGGGGGGGGGGGG'
+                exit(0)
 
             # MODE_MIXED: mixed different quality tiles 
             # MODE_FOV: only viewed tiles 
@@ -106,8 +113,22 @@ while True:
             elif MODE_FOV:
                 tile_packger.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
             elif MODE_RENDER:
-                tile_packger.video_2_image('./video_low_4s.mp4')
-                tile_packger.render_fov_local(NO_OF_TILES, SEG_LENGTH, seg_id, viewed_fov)
+                print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
+                # read the user orientation file and skip the first line
+                # then, calculate the pixel viewer by user and render the viewport
+                # no_frames = SEG_LENGTH * FPS
+                user.readline()
+                for i in range(1, 60 * FPS + 1, 1):
+                    line = user.readline().strip().split(',')
+                    yaw = float(line[7])
+                    pitch = float(line[8])
+                    roll = float(line[9])
+                    #print >> sys.stderr, line[7], line[8], line[9]
+                    viewed_fov = tile_packger.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+                    tile_packger.render_fov_local(i, viewed_fov)
+
+                # concatenate all the frame into one video
+                tile_packger.concat_image_2_video(seg_id)
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
@@ -135,3 +156,5 @@ while True:
     finally:
         # Clean up the connection
         connection.close()
+        f.close()
+        user.close()

@@ -190,7 +190,11 @@ def ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
 
 
 def video_2_image(path):
+    # Check path and files existed or not
+    make_sure_path_exists(tmp_path)
+    make_sure_path_exists(output_path)
     make_sure_path_exists(frame_path)
+
     vidcap = cv2.VideoCapture(path)
     success, frame = vidcap.read()
     count = 1 
@@ -204,41 +208,28 @@ def video_2_image(path):
         count += 1 
 
 
-def render_fov_local(no_of_tiles, seg_length, seg_id, viewed_fov=[]):
-    # Check path and files existed or not
-    make_sure_path_exists(tmp_path)
-    make_sure_path_exists(output_path)
+def render_fov_local(index, viewed_fov=[]):
+    # open the image which can be many different formats
+    ori_path = frame_path + "frame" + str(index) + ".png"
+    im = Image.open(ori_path, "r")
 
-    fps = seg_length * FPS
+    # get image size
+    width, height = im.size
 
-    all_frame = []
-    for k in range(1, fps + 1, 1):
-        # open the image which can be many different formats
-        ori_path = frame_path + "frame" + str(k) + ".png"
-        im = Image.open(ori_path, "r")
+    # create new image and a pixel map
+    new = create_image(width, height)
+    pix = new.load()
 
-        # get image size
-        width, height = im.size
+    # get the pixel in viewport
+    size = len(viewed_fov)
+    for x in range(0, size, 1):
+        i = viewed_fov[x][0]
+        j = viewed_fov[x][1]
+        pix[i, j] = get_pixel(im, i, j)
 
-        # create new image and a pixel map
-        new = create_image(width, height)
-        pix = new.load()
-
-        # get the pixel in viewport
-        size = len(viewed_fov)
-        for x in range(0, size, 1):
-            i = viewed_fov[x][0]
-            j = viewed_fov[x][1]
-            #print(i, j)
-            pix[i, j] = get_pixel(im, i, j)
-
-        path = tmp_path + "fov_temp" + str(k) + ".png" 
-        all_frame.append(path)
-        new.save(path, "PNG")
-        print >> sys.stderr, "frame:" + path + " done."
-
-    # concatenate all the frame into one video
-    concat_image_2_video(seg_id)
+    path = tmp_path + "fov_temp" + str(index) + ".png" 
+    new.save(path, "PNG")
+    print >> sys.stderr, "frame:" + path + " done."
 
 
 def concat_image_2_video(seg_id):
