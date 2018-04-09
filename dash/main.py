@@ -19,8 +19,8 @@ from libs import tile_packger
 
 # viewing constants
 MODE_MIXED = 0
-MODE_FOV = 0
-MODE_RENDER = 1
+MODE_FOV = 1
+MODE_RENDER = 0
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
@@ -99,7 +99,7 @@ while True:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
             elif MODE_RENDER:
-                tile_packger.video_2_image('./video_low.mp4')
+                tile_packger.video_2_image('./video_medium.mp4')
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
@@ -138,7 +138,7 @@ while True:
             path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
             video = open(path_of_video).read() 
             connection.sendall(video)
-            # seperate video into samll chunks then transmit each of them
+            # seperate video into small chunks then transmit each of them
             #count = 0
             #while count < len(video):
             #    chunk = video[count:count+CHUNK_SIZE]

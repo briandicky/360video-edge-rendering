@@ -229,7 +229,7 @@ def render_fov_local(index, viewed_fov=[]):
 
     path = tmp_path + "fov_temp" + str(index) + ".png" 
     new.save(path, "PNG")
-    print >> sys.stderr, "frame:" + path + " done."
+    print >> sys.stderr, "frame" + str(index) + ": " + path + " done."
 
 
 def concat_image_2_video(seg_id):
