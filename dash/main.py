@@ -74,19 +74,8 @@ while True:
         print >> sys.stderr, 'received "%s"' % data
         
         if data:
-            # server info
-            f.write(str(SERVER_ADDR) + ",")
-            f.write(str(SERVER_PORT) + ",")
-            ts = time.time()
-            f.write(str(ts) + ",")
-
-            # client info
-            f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
+            # process the data receved from client
             ori = data.split(",")
-            f.write(str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," 
-                    + str(ori[3]) + "," + str(ori[4]))
-            f.write("\n")
-
             # calculate orientation and repackage tiled video
             seg_id = int(ori[1])
             yaw = float(ori[2])
@@ -138,6 +127,7 @@ while True:
             path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
             video = open(path_of_video).read() 
             connection.sendall(video)
+            ts = time.time()
             # seperate video into small chunks then transmit each of them
             #count = 0
             #while count < len(video):
@@ -146,6 +136,17 @@ while True:
             #    count += CHUNK_SIZE
             print >> sys.stderr, 'finished sending video\n'
             connection.close()
+
+            # server info
+            f.write(str(SERVER_ADDR) + ",")
+            f.write(str(SERVER_PORT) + ",")
+            f.write(str(ts) + ",")
+
+            # client info
+            f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
+            f.write(str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," 
+                    + str(ori[3]) + "," + str(ori[4]))
+            f.write("\n")
         else:
             print >> sys.stderr, 'no more data from\n', client_address
             break
