@@ -12,6 +12,7 @@ import math
 import subprocess
 import cv2
 from libs import cal_prob
+from libs import filemanager
 from PIL import Image, ImageDraw
 
 # Path
@@ -45,9 +46,9 @@ def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
 def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, 
         low=[], medium=[], high=[]):
     # Check path and files existed or not
-    make_sure_path_exists(tmp_path)
-    make_sure_path_exists(output_path)
-    clean_exsited_files(tmp_path, output_path, seg_id)
+    filemanager.make_sure_path_exists(tmp_path)
+    filemanager.make_sure_path_exists(output_path)
+    filemanager.clean_exsited_files(tmp_path, output_path, seg_id)
 
     # Create a list to store all the videos
     video_list = []
@@ -108,9 +109,9 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
 def only_fov_tiles(no_of_tiles, seg_length, seg_id, 
         low=[], medium=[], high=[]):
     # Check path and files existed or not
-    make_sure_path_exists(tmp_path)
-    make_sure_path_exists(output_path)
-    clean_exsited_files(tmp_path, output_path, seg_id)
+    filemanager.make_sure_path_exists(tmp_path)
+    filemanager.make_sure_path_exists(output_path)
+    filemanager.clean_exsited_files(tmp_path, output_path, seg_id)
 
     video_list = []
     video_list.append("dash_set1_init.mp4")
@@ -197,7 +198,7 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
 def download_video_from_server(seg_length, video_list=[]):
     for line in video_list:
         tile = ENCODING_SERVER_ADDR + bitrate_path[1:] + str(seg_length) + "s" + auto_path + line
-        print >> sys.stderr, "Downloadin %s ..." % tile
+        #print >> sys.stderr, "Downloadin %s ..." % tile
 
         try:
             rm_tile = tmp_path + line
@@ -215,9 +216,9 @@ def ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
 
 def video_2_image(path):
     # Check path and files existed or not
-    make_sure_path_exists(tmp_path)
-    make_sure_path_exists(output_path)
-    make_sure_path_exists(frame_path)
+    filemanager.make_sure_path_exists(tmp_path)
+    filemanager.make_sure_path_exists(output_path)
+    filemanager.make_sure_path_exists(frame_path)
 
     vidcap = cv2.VideoCapture(path)
     success, frame = vidcap.read()
@@ -276,35 +277,3 @@ def get_pixel(image, i, j):
     # get pixel
     pixel = image.getpixel( (i, j) )
     return pixel
-
-
-def make_sure_path_exists(path):
-    try:
-        os.makedirs(path)
-    except OSError:
-        print >> sys.stderr, 'Folder %s already exsits.' % path
-        pass
-
-
-def clean_exsited_files(tmp_path, output_path, seg_id):
-    # Remove files at first
-    try:
-        rm_temp_mp4 = tmp_path + "temp_" + str(seg_id) + ".mp4" 
-        os.remove(rm_temp_mp4)
-    except OSError:
-        print >> sys.stderr, 'File %s do not exsit.' % rm_temp_mp4
-        pass
-
-    try:
-        rm_temp_hvc = tmp_path + "temp_" + str(seg_id) + "_track1.hvc"
-        os.remove(rm_temp_hvc)
-    except OSError:
-        print >> sys.stderr, 'File %s do not exsit.' % rm_temp_hvc
-        pass 
-
-    try:
-        rm_output = output_path + "output_" + str(seg_id) + ".mp4"
-        os.remove(rm_output)
-    except OSError:
-        print >> sys.stderr, 'File %s do not exsit.' % rm_output
-        pass
