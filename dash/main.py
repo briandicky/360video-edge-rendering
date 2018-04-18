@@ -18,8 +18,8 @@ from socket import error as SocketError
 from libs import tile_packger 
 
 # viewing constants
-MODE_MIXED = 0
-MODE_FOV = 1
+MODE_MIXED = 1
+MODE_FOV = 0
 MODE_RENDER = 0
 fov_degreew = 100
 fov_degreeh = 100
@@ -43,7 +43,7 @@ print >> sys.stderr, "Segment length = %s sec\n" % SEG_LENGTH
 
 # open the file for output messages
 f = open("./record.csv", "w")
-f.write("serverip,serverport,serverts,clientip,clientport,clientts,segid,rawYaw,rawPitch,rawRoll\n")
+f.write("edgeip,edgeport,edgerestime,clientip,clientport,clienreqttime,segid,rawYaw,rawPitch,rawRoll,serverrecvts,serverrests\n")
 
 # user orientation log file
 user = open("./game_user03_orientation.csv", "r")
@@ -98,9 +98,9 @@ while True:
             # MODE_RENDER: only render the pixels in user's viewport
             print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 format...'
             if MODE_MIXED:
-                tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+                (reqts, recvts) = tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
             elif MODE_FOV:
-                tile_packger.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+                (reqts, recvts) = tile_packger.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
             elif MODE_RENDER:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
                 # read the user orientation file and skip the first line
@@ -145,7 +145,10 @@ while True:
             # client info
             f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
             f.write(str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," 
-                    + str(ori[3]) + "," + str(ori[4]))
+                    + str(ori[3]) + "," + str(ori[4]) + ",")
+
+            # edge request and recv time 
+            f.write(str(reqts) + "," + str(recvts))
             f.write("\n")
         else:
             print >> sys.stderr, 'no more data from\n', client_address

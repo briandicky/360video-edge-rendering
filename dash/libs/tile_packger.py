@@ -11,6 +11,7 @@ import sys
 import math 
 import subprocess
 import cv2
+import time
 from libs import cal_prob
 from libs import filemanager
 from PIL import Image, ImageDraw
@@ -85,7 +86,9 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
 
     # download the videos from encoding server
+    req_ts = time.time()
     download_video_from_server(seg_length, video_list)
+    recv_ts = time.time()
     
     # Concatenate init track and each tiled tracks
     for i in range(0, len(video_list), 1):
@@ -104,6 +107,7 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
     subprocess.call('mv temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv output_%s.mp4 %s' % (seg_id, output_path), shell=True)
+    return (req_ts,recv_ts)
 
 
 def only_fov_tiles(no_of_tiles, seg_length, seg_id, 
