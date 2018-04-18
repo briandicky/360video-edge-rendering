@@ -24,6 +24,7 @@ frame_path = "./frame/"
 
 # Constants
 FPS = 30
+ENCODING_SERVER_ADDR = "140.114.77.170"
 
 # ================================================================= #
 
@@ -37,12 +38,18 @@ def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
             tiles.append(i)
 
     corr_tiles = [j+2 for j in tiles]
-    print(corr_tiles)
+    print >> sys.stderr, corr_tiles
     return corr_tiles
 
 
 def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, 
         low=[], medium=[], high=[]):
+    # Check path and files existed or not
+    make_sure_path_exists(tmp_path)
+    make_sure_path_exists(output_path)
+    clean_exsited_files(tmp_path, output_path, seg_id)
+
+    # Create a list to store all the videos
     video_list = []
     video_list.append("dash_set1_init.mp4")
     print >> sys.stderr, 'dash_set1_init.mp4'
@@ -52,34 +59,33 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
         if i == 1:
             # track1 is needed
             debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
-            print >> sys.stderr, debug_msg
+            #print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in low:
             debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
-            print >> sys.stderr, debug_msg
+            #print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in medium:
             debug_msg = "video_tiled_" + "medium_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
-            print >> sys.stderr, debug_msg
+            #print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "medium_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in high:
             debug_msg = "video_tiled_" + "high_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
-            print >> sys.stderr, debug_msg
+            #print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "high_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         else:
             debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
-            print >> sys.stderr, debug_msg
+            #print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_"
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
 
-    make_sure_path_exists(tmp_path)
-    make_sure_path_exists(output_path)
-    clean_exsited_files(tmp_path, output_path, seg_id)
-
+    # download the videos from encoding server
+    download_video_from_server(seg_length, video_list)
+    
     # Concatenate init track and each tiled tracks
     for i in range(0, len(video_list), 1):
         subprocess.call('cat %s >> temp_%s.mp4' % 
@@ -101,6 +107,11 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
 
 def only_fov_tiles(no_of_tiles, seg_length, seg_id, 
         low=[], medium=[], high=[]):
+    # Check path and files existed or not
+    make_sure_path_exists(tmp_path)
+    make_sure_path_exists(output_path)
+    clean_exsited_files(tmp_path, output_path, seg_id)
+
     video_list = []
     video_list.append("dash_set1_init.mp4")
     print >> sys.stderr, 'dash_set1_init.mp4'
@@ -110,30 +121,33 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
         if i == 1:
             # track1 is needed
             debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
-            print >> sys.stderr, debug_msg
+            #print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in low:
             debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
-            print >> sys.stderr, debug_msg
+            #print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in medium:
             debug_msg = "video_tiled_" + "medium_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
-            print >> sys.stderr, debug_msg
+            #print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "medium_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in high:
             debug_msg = "video_tiled_" + "high_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
-            print >> sys.stderr, debug_msg
+            #print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "high_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         else:
             debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
-            print >> sys.stderr, debug_msg
+            #print >> sys.stderr, debug_msg
             video_list.append("video_tiled_" + "low_" + "dash_"
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
                                                                      
+    # download the videos from encoding server
+    download_video_from_server(seg_length, video_list)
+
     # Concatenate init track and each tiled tracks
     for i in range(0, len(video_list), 1):
         subprocess.call('cat %s >> temp_%s.mp4' % 
@@ -155,17 +169,12 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
             if i not in high:
                 remove_track.append("-rem %s" % i)
     else:
-        print("It should not be here.")
+        print >> sys.stderr, "It should not be here."
 
     # convert reomve list to string
     cmd = ""
     for i in range(0, len(remove_track), 1):
         cmd = cmd + str(remove_track[i]) + " "
-
-    # Check path and files existed or not
-    make_sure_path_exists(tmp_path)
-    make_sure_path_exists(output_path)
-    clean_exsited_files(tmp_path, output_path, seg_id)
 
     # Remove unwatched tiles
     subprocess.call('MP4Box %s temp_%s.mp4 -out lost_temp_%s.mp4' % 
@@ -183,6 +192,21 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
     subprocess.call('mv lost_temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv lost_temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv output_%s.mp4 %s' % (seg_id, output_path), shell=True)
+
+
+def download_video_from_server(seg_length, video_list=[]):
+    for line in video_list:
+        tile = ENCODING_SERVER_ADDR + bitrate_path[1:] + str(seg_length) + "s" + auto_path + line
+        print >> sys.stderr, "Downloadin %s ..." % tile
+
+        try:
+            rm_tile = tmp_path + line
+            os.remove(rm_tile)
+        except OSError:
+            print >> sys.stderr, 'File %s do not exsit.' % rm_tile
+            pass
+
+        subprocess.call("wget %s -P %s" % (ENCODING_SERVER_ADDR + bitrate_path[1:] + str(seg_length) + "s" + auto_path + line, tmp_path), shell=True)
 
 
 def ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):

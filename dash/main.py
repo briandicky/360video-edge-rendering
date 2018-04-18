@@ -27,8 +27,8 @@ tile_w = 3
 tile_h = 3
 
 # socket constants
-SERVER_ADDR = "140.114.77.125"
-SERVER_PORT = 9487
+EDGE_SERVER_ADDR = "140.114.77.125"
+EDGE_SERVER_PORT = 9487
 CHUNK_SIZE = 4096
 
 # compressed domain constants
@@ -53,7 +53,7 @@ user = open("./game_user03_orientation.csv", "r")
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Bind the socket to the port
-server_address = (SERVER_ADDR, SERVER_PORT)
+server_address = (EDGE_SERVER_ADDR, EDGE_SERVER_PORT)
 print >> sys.stderr, 'starting up on %s port %s' % server_address
 sock.bind(server_address)
 
@@ -138,8 +138,8 @@ while True:
             connection.close()
 
             # server info
-            f.write(str(SERVER_ADDR) + ",")
-            f.write(str(SERVER_PORT) + ",")
+            f.write(str(EDGE_SERVER_ADDR) + ",")
+            f.write(str(EDGE_SERVER_PORT) + ",")
             f.write(str(ts) + ",")
 
             # client info
@@ -150,12 +150,15 @@ while True:
         else:
             print >> sys.stderr, 'no more data from\n', client_address
             break
+
     except SocketError as e:
         if e.errno != errno.ECONNRESET:
             raise # Not error we are looking for
         pass # Handle error here.
+
     finally:
         # Clean up the connection
         connection.close()
-        f.close()
-        user.close()
+
+#f.close()
+#user.close()
