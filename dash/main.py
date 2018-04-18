@@ -43,7 +43,7 @@ print >> sys.stderr, "Segment length = %s sec\n" % SEG_LENGTH
 
 # open the file for output messages
 f = open("./record.csv", "w")
-f.write("edgeip,edgeport,edgerestime,clientip,clientport,clienreqttime,segid,rawYaw,rawPitch,rawRoll,serverrecvts,serverrests\n")
+f.write("edgeip,edgeport,clientip,clientport,segid,rawYaw,rawPitch,rawRoll,clienreqts,edgereqts,edgerecvts,clientrecvts\n")
 
 # user orientation log file
 user = open("./game_user03_orientation.csv", "r")
@@ -140,15 +140,17 @@ while True:
             # server info
             f.write(str(EDGE_SERVER_ADDR) + ",")
             f.write(str(EDGE_SERVER_PORT) + ",")
-            f.write(str(ts) + ",")
+        
 
             # client info
             f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
-            f.write(str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," 
-                    + str(ori[3]) + "," + str(ori[4]) + ",")
+            f.write(str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4]) + ",")
 
-            # edge request and recv time 
-            f.write(str(reqts) + "," + str(recvts))
+            # edge/client request and recv time 
+            # (clienreqts,edgereqts,edgerecvts,clientrecvts")
+            f.write(str(ori[0]) + ",") # clientreqts
+            f.write(str(reqts) + "," + str(recvts) + ",") # edgereqts, edgerecvts
+            f.write(str(ts)) # clientrecvts
             f.write("\n")
         else:
             print >> sys.stderr, 'no more data from\n', client_address
