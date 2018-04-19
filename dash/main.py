@@ -18,9 +18,9 @@ from socket import error as SocketError
 from libs import tile_packger 
 
 # viewing constants
-MODE_MIXED = 1
+MODE_MIXED = 0
 MODE_FOV = 0
-MODE_RENDER = 0
+MODE_RENDER = 1
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
@@ -88,7 +88,7 @@ while True:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
             elif MODE_RENDER:
-                tile_packger.video_2_image('./video_medium.mp4')
+                tile_packger.video_2_image('./coaster_equir.mp4')
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
@@ -149,8 +149,8 @@ while True:
             # edge/client request and recv time 
             # (clienreqts,edgereqts,edgerecvts,clientrecvts")
             f.write(str(ori[0]) + ",") # clientreqts
-            f.write(str(reqts) + "," + str(recvts) + ",") # edgereqts, edgerecvts
-            f.write(str(ts)) # clientrecvts
+            f.write(str(format(reqts, '.3f')) + "," + str(format(recvts, '.3f')) + ",") # edgereqts, edgerecvts
+            f.write(str(format(ts, '.3f'))) # clientrecvts
             f.write("\n")
         else:
             print >> sys.stderr, 'no more data from\n', client_address
