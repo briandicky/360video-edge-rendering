@@ -88,7 +88,7 @@ while True:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
             elif MODE_RENDER:
-                tile_packger.video_2_image('./coaster_equir.mp4')
+                (reqts, recvts) = tile_packger.video_2_image(SEG_LENGTH, seg_id, "game")
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
@@ -107,7 +107,7 @@ while True:
                 # then, calculate the pixel viewer by user and render the viewport
                 # no_frames = SEG_LENGTH * FPS
                 user.readline()
-                for i in range(1, 60 * FPS + 1, 1):
+                for i in range(1, SEG_LENGTH * FPS + 1, 1):
                     line = user.readline().strip().split(',')
                     yaw = float(line[7])
                     pitch = float(line[8])

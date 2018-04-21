@@ -87,7 +87,7 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
 
     # download the videos from encoding server
     req_ts = time.time()
-    download_video_from_server(seg_length, video_list)
+    download_tiled_video_from_server(seg_length, video_list)
     recv_ts = time.time()
     
     # Concatenate init track and each tiled tracks
@@ -152,7 +152,7 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
                                                                      
     # download the videos from encoding server
     req_ts = time.time()
-    download_video_from_server(seg_length, video_list)
+    download_tiled_video_from_server(seg_length, video_list)
     recv_ts = time.time()
 
     # Concatenate init track and each tiled tracks
@@ -202,7 +202,7 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
     return (req_ts,recv_ts)
 
 
-def download_video_from_server(seg_length, video_list=[]):
+def download_tiled_video_from_server(seg_length, video_list=[]):
     for line in video_list:
         tile = ENCODING_SERVER_ADDR + bitrate_path[1:] + str(seg_length) + "s" + auto_path + line
         #print >> sys.stderr, "Downloadin %s ..." % tile
@@ -214,18 +214,30 @@ def download_video_from_server(seg_length, video_list=[]):
             print >> sys.stderr, 'File %s do not exsit.' % rm_tile
             pass
 
-        subprocess.call("wget %s -P %s" % (ENCODING_SERVER_ADDR + bitrate_path[1:] + str(seg_length) + "s" + auto_path + line, tmp_path), shell=True)
+        subprocess.call("wget %s -P %s" % (tile, tmp_path), shell=True)
+
+
+def download_video_from_server(seg_length, seg_id, video):
+    panorama = ENCODING_SERVER_ADDR + bitrate_path[1:] + str(seg_length) + "s" + "/" + str(video) + "/" + str(video) + "_equir_" + str(seg_id) + ".mp4"
+    print(panorama)
+    subprocess.call("wget %s -P %s" % (panorama, tmp_path), shell=True)
+    return tmp_path + str(video) + "_equir_" + str(seg_id) + ".mp4"
 
 
 def ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
     return cal_prob.gen_fov(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
 
 
-def video_2_image(path):
+def video_2_image(seg_length, seg_id, video):
     # Check path and files existed or not
     filemanager.make_sure_path_exists(tmp_path)
     filemanager.make_sure_path_exists(output_path)
     filemanager.make_sure_path_exists(frame_path)
+
+    # download the videos from encoding server
+    req_ts = time.time()
+    path = download_video_from_server(seg_length, seg_id, video)
+    recv_ts = time.time()
 
     vidcap = cv2.VideoCapture(path)
     success, frame = vidcap.read()
@@ -238,6 +250,8 @@ def video_2_image(path):
         success, frame = vidcap.read()
         print "Clip a new frame:", count
         count += 1 
+
+    return (req_ts,recv_ts)
 
 
 def render_fov_local(index, viewed_fov=[]):
