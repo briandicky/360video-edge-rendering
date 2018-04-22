@@ -14,6 +14,7 @@ import time
 import errno
 import struct
 import pickle
+import signal
 from libs import tiled
 from libs import viewport
 from socket import error as SocketError
@@ -29,7 +30,7 @@ tile_h = 3
 
 # socket constants
 EDGE_SERVER_ADDR = "140.114.77.125"
-EDGE_SERVER_PORT = 9487
+EDGE_SERVER_PORT = 19487
 CHUNK_SIZE = 4096
 
 # compression constants
@@ -53,6 +54,15 @@ f.write("edgeip,edgeport,clientip,clientport,segid,rawYaw,rawPitch,rawRoll,clien
 # user orientation log file
 user = open(ORIENTATION, "r")
 # End of constants
+
+# signal handler
+def handler(signum, frame): 
+    print >> sys.stderr, 'KeyboardInterrupt, then close file and clean up connections'
+    f.close()
+    user.close()
+
+signal.signal(signal.SIGINT, handler)
+# end of signal handler
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -170,5 +180,5 @@ while True:
         # Clean up the connection
         connection.close()
 
-#f.close()
-#user.close()
+f.close()
+user.close()
