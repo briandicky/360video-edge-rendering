@@ -31,10 +31,14 @@ EDGE_SERVER_ADDR = "140.114.77.125"
 EDGE_SERVER_PORT = 9487
 CHUNK_SIZE = 4096
 
-# compressed domain constants
+# compression constants
 NO_OF_TILES = tile_w*tile_h
 SEG_LENGTH = 4
 FPS = 30
+
+# metadata constants
+VIDEO = "game"
+ORIENTATION = "./game_user03_orientation.csv"
 
 # debugging messages 
 print >> sys.stderr, "No. of tiles = %s x %s = %s" % (tile_w, tile_h, NO_OF_TILES)
@@ -46,7 +50,7 @@ f = open("./record.csv", "w")
 f.write("edgeip,edgeport,clientip,clientport,segid,rawYaw,rawPitch,rawRoll,clienreqts,edgereqts,edgerecvts,clientrecvts\n")
 
 # user orientation log file
-user = open("./game_user03_orientation.csv", "r")
+user = open(ORIENTATION, "r")
 # End of constants
 
 # Create a TCP/IP socket
@@ -88,7 +92,7 @@ while True:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
             elif MODE_RENDER:
-                (reqts, recvts) = tiled.video_2_image(SEG_LENGTH, seg_id, "game")
+                (reqts, recvts) = tiled.video_2_image(SEG_LENGTH, seg_id, VIDEO)
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
