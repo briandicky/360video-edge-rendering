@@ -19,9 +19,9 @@ from libs import viewport
 from socket import error as SocketError
 
 # viewing constants
-MODE_MIXED = 0
+MODE_MIXED = 1
 MODE_FOV = 0
-MODE_RENDER = 1
+MODE_RENDER = 0
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
@@ -47,7 +47,7 @@ print >> sys.stderr, "FoV width = %s, FoV height = %s" % (fov_degreew, fov_degre
 print >> sys.stderr, "Segment length = %s sec\n" % SEG_LENGTH
 
 # open the file for output messages
-f = open("./record.csv", "w")
+f = open("./log.csv", "w")
 f.write("edgeip,edgeport,clientip,clientport,segid,rawYaw,rawPitch,rawRoll,clienreqts,edgereqts,edgerecvts,clientrecvts\n")
 
 # user orientation log file
