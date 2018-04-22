@@ -15,12 +15,12 @@ import errno
 import struct
 import pickle
 from socket import error as SocketError
-from libs import tile_packger 
+from libs import tiled
 
 # viewing constants
 MODE_MIXED = 0
-MODE_FOV = 0
-MODE_RENDER = 1
+MODE_FOV = 1
+MODE_RENDER = 0
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
@@ -83,12 +83,12 @@ while True:
             roll = float(ori[4])
             if MODE_MIXED:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
-                viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+                viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
             elif MODE_FOV:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
-                viewed_tiles = tile_packger.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+                viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
             elif MODE_RENDER:
-                (reqts, recvts) = tile_packger.video_2_image(SEG_LENGTH, seg_id, "game")
+                (reqts, recvts) = tiled.video_2_image(SEG_LENGTH, seg_id, "game")
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
@@ -98,9 +98,9 @@ while True:
             # MODE_RENDER: only render the pixels in user's viewport
             print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 format...'
             if MODE_MIXED:
-                (reqts, recvts) = tile_packger.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+                (reqts, recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
             elif MODE_FOV:
-                (reqts, recvts) = tile_packger.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+                (reqts, recvts) = tiled.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
             elif MODE_RENDER:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
                 # read the user orientation file and skip the first line
@@ -113,11 +113,11 @@ while True:
                     pitch = float(line[8])
                     roll = float(line[9])
                     #print >> sys.stderr, line[7], line[8], line[9]
-                    viewed_fov = tile_packger.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-                    tile_packger.render_fov_local(i, viewed_fov)
+                    viewed_fov = tiled.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+                    tiled.render_fov_local(i, viewed_fov)
 
                 # concatenate all the frame into one video
-                tile_packger.concat_image_2_video(seg_id)
+                tiled.concat_image_2_video(seg_id)
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
