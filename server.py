@@ -30,7 +30,7 @@ tile_h = 3
 
 # socket constants
 EDGE_SERVER_ADDR = "140.114.77.125"
-EDGE_SERVER_PORT = 19487
+EDGE_SERVER_PORT = 9487
 CHUNK_SIZE = 4096
 
 # compression constants
@@ -67,7 +67,7 @@ def handler_sigterm(signum, frame):
     user.close()
 
 signal.signal(signal.SIGINT, handler_sigint)
-signal.signal(signal.SIGTERM, handler)
+signal.signal(signal.SIGTERM, handler_sigterm)
 # end of signal handler
 
 # Create a TCP/IP socket
