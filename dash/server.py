@@ -14,13 +14,14 @@ import time
 import errno
 import struct
 import pickle
-from socket import error as SocketError
 from libs import tiled
+from libs import viewport
+from socket import error as SocketError
 
 # viewing constants
 MODE_MIXED = 0
-MODE_FOV = 1
-MODE_RENDER = 0
+MODE_FOV = 0
+MODE_RENDER = 1
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
@@ -92,7 +93,7 @@ while True:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
             elif MODE_RENDER:
-                (reqts, recvts) = tiled.video_2_image(SEG_LENGTH, seg_id, VIDEO)
+                (reqts, recvts) = viewport.video_2_image(SEG_LENGTH, seg_id, VIDEO)
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
@@ -117,11 +118,11 @@ while True:
                     pitch = float(line[8])
                     roll = float(line[9])
                     #print >> sys.stderr, line[7], line[8], line[9]
-                    viewed_fov = tiled.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-                    tiled.render_fov_local(i, viewed_fov)
+                    viewed_fov = viewport.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+                    viewport.render_fov_local(i, viewed_fov)
 
                 # concatenate all the frame into one video
-                tiled.concat_image_2_video(seg_id)
+                viewport.concat_image_2_video(seg_id)
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
