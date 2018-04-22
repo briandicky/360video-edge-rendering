@@ -53,7 +53,7 @@ vim server.py
 
 ### Check the logs
 ```
-vim log.txt
+vim log.csv
 
 #edgeip,edgeport,clientip,clientport,segid,rawYaw,rawPitch,rawRoll,clienreqts,edgereqts,edgerecvts,clientrecvts
 #140.114.77.125,9487,140.114.77.125,36420,3,-120.036058333,0.103563888889,-3.993,1524380472.727,1524380478.625,1524380478.931,1524380479.038
