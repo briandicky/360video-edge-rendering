@@ -56,12 +56,18 @@ user = open(ORIENTATION, "r")
 # End of constants
 
 # signal handler
-def handler(signum, frame): 
-    print >> sys.stderr, 'KeyboardInterrupt, then close file and clean up connections'
+def handler_sigint(signum, frame): 
+    print >> sys.stderr, 'KeyboardInterrupt, then close files and clean up all the connections'
     f.close()
     user.close()
 
-signal.signal(signal.SIGINT, handler)
+def handler_sigterm(signum, frame):
+    print >> sys.stderr, 'Killed by user, then close files and clean up all the connections'
+    f.close()
+    user.close()
+
+signal.signal(signal.SIGINT, handler_sigint)
+signal.signal(signal.SIGTERM, handler)
 # end of signal handler
 
 # Create a TCP/IP socket
