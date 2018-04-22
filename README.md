@@ -1,4 +1,4 @@
-# edge_rendering
+# 360 video edge rendering
 This repository contains the source code to manipulate edge-assisted 360-degree videos streaming. 
 In particular to prepare videos and run experiments for our proposals and papers. 
 
