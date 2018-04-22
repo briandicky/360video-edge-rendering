@@ -91,8 +91,7 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
     # Concatenate init track and each tiled tracks
     for i in range(0, len(video_list), 1):
         subprocess.call('cat %s >> temp_%s.mp4' % 
-                ( (tmp_path + str(seg_length) + "s" + auto_path 
-                    + video_list[i]), seg_id), shell=True)
+                ( (tmp_path + video_list[i]), seg_id), shell=True)
 
     # Extract the raw hevc bitstream
     subprocess.call('MP4Box -raw 1 temp_%s.mp4' % seg_id, shell=True)
@@ -156,8 +155,7 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
     # Concatenate init track and each tiled tracks
     for i in range(0, len(video_list), 1):
         subprocess.call('cat %s >> temp_%s.mp4' % 
-                ( (tmp_path + str(seg_length) + "s" + auto_path 
-                    + video_list[i]), seg_id), shell=True)
+                ( (tmp_path + video_list[i]), seg_id), shell=True)
 
     # Parse the viewed tile list to create remove list
     remove_track = []
