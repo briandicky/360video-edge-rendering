@@ -42,7 +42,7 @@ def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
     return corr_tiles
 
 
-def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, 
+def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, VIDEO,
         low=[], medium=[], high=[]):
     # Check path and files existed or not
     filemanager.make_sure_path_exists(tmp_path)
@@ -85,7 +85,7 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
 
     # download the videos from encoding server
     req_ts = time.time()
-    download_tiled_video_from_server(seg_length, video_list)
+    download_tiled_video_from_server(VIDEO, seg_length, video_list)
     recv_ts = time.time()
     
     # Concatenate init track and each tiled tracks
@@ -107,7 +107,7 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id,
     return (req_ts,recv_ts)
 
 
-def only_fov_tiles(no_of_tiles, seg_length, seg_id, 
+def only_fov_tiles(no_of_tiles, seg_length, seg_id, VIDEO,
         low=[], medium=[], high=[]):
     # Check path and files existed or not
     filemanager.make_sure_path_exists(tmp_path)
@@ -149,7 +149,7 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
                                                                      
     # download the videos from encoding server
     req_ts = time.time()
-    download_tiled_video_from_server(seg_length, video_list)
+    download_tiled_video_from_server(VIDEO, seg_length, video_list)
     recv_ts = time.time()
 
     # Concatenate init track and each tiled tracks
@@ -198,9 +198,9 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id,
     return (req_ts,recv_ts)
 
 
-def download_tiled_video_from_server(seg_length, video_list=[]):
+def download_tiled_video_from_server(VIDEO, seg_length, video_list=[]):
     for line in video_list:
-        tile = ENCODING_SERVER_ADDR + bitrate_path[1:] + str(seg_length) + "s" + auto_path + line
+        tile = ENCODING_SERVER_ADDR + bitrate_path[1:] + str(seg_length) + "s" + "/" + VIDEO + auto_path + line
         #print >> sys.stderr, "Downloadin %s ..." % tile
 
         try:

@@ -119,9 +119,9 @@ while True:
             # MODE_RENDER: only render the pixels in user's viewport
             print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 format...'
             if MODE_MIXED:
-                (reqts, recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+                (reqts, recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
             elif MODE_FOV:
-                (reqts, recvts) = tiled.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, [], viewed_tiles, [])
+                (reqts, recvts) = tiled.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
             elif MODE_RENDER:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
                 # read the user orientation file and skip the first line
