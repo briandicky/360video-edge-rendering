@@ -20,9 +20,9 @@ from libs import viewport
 from socket import error as SocketError
 
 # viewing constants
-MODE_MIXED = 1
+MODE_MIXED = 0
 MODE_FOV = 0
-MODE_RENDER = 0
+MODE_RENDER = 1
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
@@ -109,7 +109,7 @@ while True:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
             elif MODE_RENDER:
-                (reqts, recvts) = viewport.video_2_image(SEG_LENGTH, seg_id, VIDEO)
+                (reqts, start_recvts, end_recvts) = viewport.video_2_image(SEG_LENGTH, seg_id, VIDEO)
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
