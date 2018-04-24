@@ -167,9 +167,9 @@ while True:
             f.write(str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4]) + ",")
 
             # edge/client request and recv time 
-            # (clienreqts,edgereqts,edgerecvts,clientrecvts")
+            # (clienreqts,edgereqts,edgestartrecvts,edgeendrecvtsclientrecvts")
             f.write(str(ori[0]) + ",") # clientreqts
-            f.write(str(format(reqts, '.6f')) + "," + str(format(start_recvts, '.6f')) + "," + str(format(end_recvts, '.6f')) + ",") # edgereqts, edgerecvts
+            f.write(str(format(reqts, '.6f')) + "," + str(format(start_recvts, '.6f')) + "," + str(format(end_recvts, '.6f')) + ",") # edgereqts, edgestartrecvts, edgeendrecvts
             f.write(str(format(ts, '.6f'))) # clientrecvts
             f.write("\n")
         else:
