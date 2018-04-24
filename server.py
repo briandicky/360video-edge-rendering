@@ -20,9 +20,9 @@ from libs import viewport
 from socket import error as SocketError
 
 # viewing constants
-MODE_MIXED = 0
+MODE_MIXED = 1
 MODE_FOV = 0
-MODE_RENDER = 1
+MODE_RENDER = 
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
