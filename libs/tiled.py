@@ -85,8 +85,8 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, VIDEO,
 
     # download the videos from encoding server
     req_ts = time.time()
-    download_tiled_video_from_server(VIDEO, no_of_tiles, seg_length, video_list)
-    recv_ts = time.time()
+    start_recv_ts = download_tiled_video_from_server(VIDEO, no_of_tiles, seg_length, video_list)
+    end_recv_ts = time.time()
     
     # Concatenate init track and each tiled tracks
     for i in range(0, len(video_list), 1):
@@ -104,7 +104,7 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, VIDEO,
     subprocess.call('mv temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv output_%s.mp4 %s' % (seg_id, output_path), shell=True)
-    return (req_ts,recv_ts)
+    return (req_ts, start_recv_ts, end_recv_ts)
 
 
 def only_fov_tiles(no_of_tiles, seg_length, seg_id, VIDEO,
@@ -149,8 +149,8 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id, VIDEO,
                                                                      
     # download the videos from encoding server
     req_ts = time.time()
-    download_tiled_video_from_server(VIDEO, no_of_tiles, seg_length, video_list)
-    recv_ts = time.time()
+    start_recv_ts = download_tiled_video_from_server(VIDEO, no_of_tiles, seg_length, video_list)
+    end_recv_ts = time.time()
 
     # Concatenate init track and each tiled tracks
     for i in range(0, len(video_list), 1):
@@ -195,10 +195,11 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id, VIDEO,
     subprocess.call('mv lost_temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv lost_temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
     subprocess.call('mv output_%s.mp4 %s' % (seg_id, output_path), shell=True)
-    return (req_ts,recv_ts)
+    return (req_ts, start_recv_ts, end_recv_ts)
 
 
 def download_tiled_video_from_server(VIDEO, no_of_tiles, seg_length, video_list=[]):
+    starting_download = True
     for line in video_list:
         if no_of_tiles == 3*3:
             tile = ENCODING_SERVER_ADDR + bitrate_path[1:] + str(seg_length) + "s" + "/" + VIDEO + auto_path + "3x3/" + line
@@ -214,4 +215,11 @@ def download_tiled_video_from_server(VIDEO, no_of_tiles, seg_length, video_list=
             print >> sys.stderr, 'File %s do not exsit.' % rm_tile
             pass
 
+        # record the starting download time
+        if starting_download:
+            start_recv_ts = time.time()
+            starting_download = False
+
         subprocess.call("wget %s -P %s" % (tile, tmp_path), shell=True)
+
+    return start_recv_ts

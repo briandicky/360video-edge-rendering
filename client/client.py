@@ -36,7 +36,7 @@ sock.connect(server_address)
 
 try:
     # Send data
-    ori = (format(time.time(), '.3f'), segid, yaw, pitch, roll)
+    ori = (format(time.time(), '.6f'), segid, yaw, pitch, roll)
     print >> sys.stderr, 'sending (%s, %s, %s, %s, %s)' % ori
     mes = str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4])
     sock.sendall(mes)

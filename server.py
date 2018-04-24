@@ -49,7 +49,7 @@ print >> sys.stderr, "Segment length = %s sec\n" % SEG_LENGTH
 
 # open the file for output messages
 f = open("./log.csv", "w")
-f.write("edgeip,edgeport,clientip,clientport,segid,rawYaw,rawPitch,rawRoll,clienreqts,edgereqts,edgerecvts,clientrecvts\n")
+f.write("edgeip,edgeport,clientip,clientport,segid,rawYaw,rawPitch,rawRoll,clienreqts,edgereqts,edgestartrecvts,edgeendrecvts,clientrecvts\n")
 
 # user orientation log file
 user = open(ORIENTATION, "r")
@@ -119,9 +119,9 @@ while True:
             # MODE_RENDER: only render the pixels in user's viewport
             print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 format...'
             if MODE_MIXED:
-                (reqts, recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
+                (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
             elif MODE_FOV:
-                (reqts, recvts) = tiled.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
+                (reqts, start_recvts, end_recvts) = tiled.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
             elif MODE_RENDER:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
                 # read the user orientation file and skip the first line
@@ -162,7 +162,6 @@ while True:
             f.write(str(EDGE_SERVER_ADDR) + ",")
             f.write(str(EDGE_SERVER_PORT) + ",")
         
-
             # client info
             f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
             f.write(str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4]) + ",")
@@ -170,8 +169,8 @@ while True:
             # edge/client request and recv time 
             # (clienreqts,edgereqts,edgerecvts,clientrecvts")
             f.write(str(ori[0]) + ",") # clientreqts
-            f.write(str(format(reqts, '.3f')) + "," + str(format(recvts, '.3f')) + ",") # edgereqts, edgerecvts
-            f.write(str(format(ts, '.3f'))) # clientrecvts
+            f.write(str(format(reqts, '.6f')) + "," + str(format(start_recvts, '.6f')) + "," + str(format(end_recvts, '.6f')) + ",") # edgereqts, edgerecvts
+            f.write(str(format(ts, '.6f'))) # clientrecvts
             f.write("\n")
         else:
             print >> sys.stderr, 'no more data from\n', client_address

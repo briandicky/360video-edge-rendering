@@ -32,9 +32,9 @@ ENCODING_SERVER_ADDR = "140.114.77.170"
 
 def download_video_from_server(seg_length, seg_id, video):
     panorama = ENCODING_SERVER_ADDR + bitrate_path[1:] + str(seg_length) + "s" + "/" + str(video) + "/" + str(video) + "_equir_" + str(seg_id) + ".mp4"
-    print(panorama)
+    start_recv_ts = time.time()
     subprocess.call("wget %s -P %s" % (panorama, tmp_path), shell=True)
-    return tmp_path + str(video) + "_equir_" + str(seg_id) + ".mp4"
+    return start_recv_ts
 
 
 def ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
@@ -49,9 +49,11 @@ def video_2_image(seg_length, seg_id, video):
 
     # download the videos from encoding server
     req_ts = time.time()
-    path = download_video_from_server(seg_length, seg_id, video)
-    recv_ts = time.time()
+    start_recv_ts = download_video_from_server(seg_length, seg_id, video)
+    end_recv_ts = time.time()
 
+    # clip video into frames
+    path = tmp_path + str(video) + "_equir_" + str(seg_id) + ".mp4"
     vidcap = cv2.VideoCapture(path)
     success, frame = vidcap.read()
     count = 1 
@@ -64,7 +66,7 @@ def video_2_image(seg_length, seg_id, video):
         print "Clip a new frame:", count
         count += 1 
 
-    return (req_ts,recv_ts)
+    return (req_ts, start_recv_ts, end_recv_ts)
 
 
 def render_fov_local(index, viewed_fov=[]):
