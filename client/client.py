@@ -16,11 +16,11 @@ from socket import error as SocketError
 
 # Constants
 SERVER_ADDR = "140.114.77.125"
-SERVER_PORT = 19487
+SERVER_PORT = 9487
 
 CHUNK_SIZE = 4096
 
-segid = 3
+segid = 1
 yaw = -120.03605833333
 pitch = 0.103563888889
 roll = -3.993
