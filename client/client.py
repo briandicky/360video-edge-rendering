@@ -16,7 +16,7 @@ from socket import error as SocketError
 
 # Constants
 SERVER_ADDR = "140.114.77.125"
-SERVER_PORT = 9487
+SERVER_PORT = 19487
 
 CHUNK_SIZE = 4096
 
@@ -24,6 +24,9 @@ segid = 3
 yaw = -120.03605833333
 pitch = 0.103563888889
 roll = -3.993
+
+VIDEO = "game"
+ORIENTATION = "game_user03_orientation.csv"
 # End of constants
 
 # Create a TCP/IP socket
@@ -36,9 +39,9 @@ sock.connect(server_address)
 
 try:
     # Send data
-    ori = (format(time.time(), '.6f'), segid, yaw, pitch, roll)
-    print >> sys.stderr, 'sending (%s, %s, %s, %s, %s)' % ori
-    mes = str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4])
+    ori = (format(time.time(), '.6f'), segid, yaw, pitch, roll, VIDEO, ORIENTATION)
+    print >> sys.stderr, 'sending (%s, %s, %s, %s, %s, %s, %s)' % ori
+    mes = str(ori[0]) + "," + str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4]) + "," + str(ori[5]) + "," + str(ori[6])
     sock.sendall(mes)
 
     # Receive video from server

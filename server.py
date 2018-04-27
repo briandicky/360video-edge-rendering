@@ -22,15 +22,17 @@ from socket import error as SocketError
 # viewing constants
 MODE_MIXED = 1
 MODE_FOV = 0
-MODE_RENDER = 
+MODE_RENDER = 0
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
 tile_h = 3
 
 # socket constants
+ENCODING_SERVER_ADDR = "140.114.77.170"
+ENCODING_SERVER_PORT = 80
 EDGE_SERVER_ADDR = "140.114.77.125"
-EDGE_SERVER_PORT = 9487
+EDGE_SERVER_PORT = 19487
 CHUNK_SIZE = 4096
 
 # compression constants
@@ -39,8 +41,8 @@ SEG_LENGTH = 4
 FPS = 30
 
 # metadata constants
-VIDEO = "game"
-ORIENTATION = "./game_user03_orientation.csv"
+#VIDEO = "game"
+#ORIENTATION = "./game_user03_orientation.csv"
 
 # debugging messages 
 print >> sys.stderr, "No. of tiles = %s x %s = %s" % (tile_w, tile_h, NO_OF_TILES)
@@ -49,22 +51,22 @@ print >> sys.stderr, "Segment length = %s sec\n" % SEG_LENGTH
 
 # open the file for output messages
 f = open("./log.csv", "w")
-f.write("edgeip,edgeport,clientip,clientport,segid,rawYaw,rawPitch,rawRoll,clienreqts,edgereqts,edgestartrecvts,edgeendrecvts,clientrecvts\n")
+f.write("cloudip,cloudport,edgeip,edgeport,clientip,clientport,segid,Yaw,Pitch,Roll,clienreqts,edgerecv,edgereqts,edgestartrecvts,edgeendrecvts,clientrecvts,filesize(bytes)\n")
 
 # user orientation log file
-user = open(ORIENTATION, "r")
+#user = open(ORIENTATION, "r")
 # End of constants
 
 # signal handler
 def handler_sigint(signum, frame): 
     print >> sys.stderr, 'KeyboardInterrupt, then close files and clean up all the connections'
     f.close()
-    user.close()
+    exit(0)
 
 def handler_sigterm(signum, frame):
     print >> sys.stderr, 'Killed by user, then close files and clean up all the connections'
     f.close()
-    user.close()
+    exit(0)
 
 signal.signal(signal.SIGINT, handler_sigint)
 signal.signal(signal.SIGTERM, handler_sigterm)
@@ -92,16 +94,21 @@ while True:
 
         # Receive the data in small chunks and retransmit it
         data = connection.recv(CHUNK_SIZE)
+        edgerecvts = time.time()
         print >> sys.stderr, 'received "%s"' % data
         
         if data:
             # process the data receved from client
             ori = data.split(",")
+
             # calculate orientation and repackage tiled video
             seg_id = int(ori[1])
             yaw = float(ori[2])
             pitch = float(ori[3])
             roll = float(ori[4])
+            VIDEO = str(ori[5])
+            ORIENTATION = str(ori[6])
+
             if MODE_MIXED:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
@@ -117,7 +124,7 @@ while True:
             # MODE_MIXED: mixed different quality tiles 
             # MODE_FOV: only viewed tiles 
             # MODE_RENDER: only render the pixels in user's viewport
-            print >> sys.stderr, '\nrepackging different quality tiles track into ERP mp4 format...'
+            print >> sys.stderr, '\nencapsulating different quality tiles track into ERP mp4 format...'
             if MODE_MIXED:
                 (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
             elif MODE_FOV:
@@ -127,7 +134,17 @@ while True:
                 # read the user orientation file and skip the first line
                 # then, calculate the pixel viewer by user and render the viewport
                 # no_frames = SEG_LENGTH * FPS
+
+                try:
+                    user = open("./360dataset/sensory/orientation/" + ORIENTATION, "r")
+                except IOError as e:
+                    print >> sys.stderr, 'I/O error({0}): {1}'.format(e.errno, e.strerror)
+                except:
+                    print "Unexpected error:", sys.exc_info()[0]
+                    raise
+
                 user.readline()
+
                 for i in range(1, SEG_LENGTH * FPS + 1, 1):
                     line = user.readline().strip().split(',')
                     yaw = float(line[7])
@@ -139,6 +156,7 @@ while True:
 
                 # concatenate all the frame into one video
                 viewport.concat_image_2_video(seg_id)
+                user.close()
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
@@ -147,8 +165,9 @@ while True:
             print >> sys.stderr, '\nsending video back to the client'
             path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
             video = open(path_of_video).read() 
+            video_size = os.path.getsize(path_of_video)
             connection.sendall(video)
-            ts = time.time()
+            clientrecvts = time.time()
             # seperate video into small chunks then transmit each of them
             #count = 0
             #while count < len(video):
@@ -158,19 +177,25 @@ while True:
             print >> sys.stderr, 'finished sending video\n'
             connection.close()
 
-            # server info
+            # cloud server info 
+            f.write(str(ENCODING_SERVER_ADDR) + ",")
+            f.write(str(ENCODING_SERVER_PORT) + ",")
+
+            # edge server info
             f.write(str(EDGE_SERVER_ADDR) + ",")
             f.write(str(EDGE_SERVER_PORT) + ",")
         
-            # client info
+            # edn client info
             f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
             f.write(str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4]) + ",")
 
             # edge/client request and recv time 
-            # (clienreqts,edgereqts,edgestartrecvts,edgeendrecvtsclientrecvts")
+            # (clienreqts,edgerecvts,edgereqts,edgestartrecvts,edgeendrecvts,clientrecvts,filesize")
             f.write(str(ori[0]) + ",") # clientreqts
+            f.write(str(format(edgerecvts, '.6f')) + ",") # edgerecvts
             f.write(str(format(reqts, '.6f')) + "," + str(format(start_recvts, '.6f')) + "," + str(format(end_recvts, '.6f')) + ",") # edgereqts, edgestartrecvts, edgeendrecvts
-            f.write(str(format(ts, '.6f'))) # clientrecvts
+            f.write(str(format(clientrecvts, '.6f')) + ",") # clientrecvts
+            f.write(str(video_size)) # total file that are transferred to client
             f.write("\n")
         else:
             print >> sys.stderr, 'no more data from\n', client_address
@@ -184,6 +209,3 @@ while True:
     finally:
         # Clean up the connection
         connection.close()
-
-f.close()
-user.close()
