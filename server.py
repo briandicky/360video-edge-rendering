@@ -15,14 +15,21 @@ import errno
 import struct
 import pickle
 import signal
+from enum import Enum
 from libs import tiled
 from libs import viewport
 from socket import error as SocketError
 
 # viewing constants
-MODE_MIXED = 1
-MODE_FOV = 0
-MODE_RENDER = 0
+class RENDER(Enum):
+    CR = 1
+    TR = 2
+    VPR = 3
+    TR_only = 4
+
+# set rendering mode here
+MODE = RENDER.TR
+
 fov_degreew = 100
 fov_degreeh = 100
 tile_w = 3
@@ -37,7 +44,7 @@ CHUNK_SIZE = 4096
 
 # compression constants
 NO_OF_TILES = tile_w*tile_h
-SEG_LENGTH = 4
+SEG_LENGTH = 10
 FPS = 30
 
 # metadata constants
@@ -109,27 +116,32 @@ while True:
             VIDEO = str(ori[5])
             ORIENTATION = str(ori[6])
 
-            if MODE_MIXED:
+            if MODE.name == "TR":
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-            elif MODE_FOV:
+            elif MODE.name == "TR_only":
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-            elif MODE_RENDER:
+            elif MODE.name == "VPR":
                 (reqts, start_recvts, end_recvts) = viewport.video_2_image(SEG_LENGTH, seg_id, VIDEO)
+            elif MODE.name == "CR":
+                viewed_tiles = []
+                for i in range(1, (tile_w*tile_h + 2), 1):
+                    viewed_tiles.append(i)
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
 
-            # MODE_MIXED: mixed different quality tiles 
-            # MODE_FOV: only viewed tiles 
-            # MODE_RENDER: only render the pixels in user's viewport
+            # CR: do nothing
+            # TR: mixed different quality tiles 
+            # TR_only: only viewed tiles 
+            # VPR: only render the pixels in user's viewport
             print >> sys.stderr, '\nencapsulating different quality tiles track into ERP mp4 format...'
-            if MODE_MIXED:
+            if MODE.name == "TR":
                 (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
-            elif MODE_FOV:
+            elif MODE.name == "TR_only":
                 (reqts, start_recvts, end_recvts) = tiled.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
-            elif MODE_RENDER:
+            elif MODE.name == "VPR":
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
                 # read the user orientation file and skip the first line
                 # then, calculate the pixel viewer by user and render the viewport
@@ -144,7 +156,6 @@ while True:
                     raise
 
                 user.readline()
-
                 for i in range(1, SEG_LENGTH * FPS + 1, 1):
                     line = user.readline().strip().split(',')
                     yaw = float(line[7])
@@ -157,6 +168,8 @@ while True:
                 # concatenate all the frame into one video
                 viewport.concat_image_2_video(seg_id)
                 user.close()
+            elif MODE.name == "CR":
+                (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
             else:
                 print >> sys.stderr, 'GGGGGGGGGGGGG'
                 exit(0)
