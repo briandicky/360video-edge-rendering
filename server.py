@@ -28,7 +28,7 @@ class RENDER(Enum):
     TR_only = 4
 
 # set rendering mode here
-MODE = RENDER.TR
+MODE = RENDER.VPR
 
 fov_degreew = 100
 fov_degreeh = 100
@@ -44,7 +44,7 @@ CHUNK_SIZE = 4096
 
 # compression constants
 NO_OF_TILES = tile_w*tile_h
-SEG_LENGTH = 10
+SEG_LENGTH = 4
 FPS = 30
 
 # metadata constants
@@ -123,7 +123,9 @@ while True:
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
                 viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
             elif MODE.name == "VPR":
-                (reqts, start_recvts, end_recvts) = viewport.video_2_image(SEG_LENGTH, seg_id, VIDEO)
+                viewed_tiles = []
+                for i in range(1, (tile_w*tile_h + 2), 1):
+                    viewed_tiles.append(i)
             elif MODE.name == "CR":
                 viewed_tiles = []
                 for i in range(1, (tile_w*tile_h + 2), 1):
@@ -142,6 +144,10 @@ while True:
             elif MODE.name == "TR_only":
                 (reqts, start_recvts, end_recvts) = tiled.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
             elif MODE.name == "VPR":
+                (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
+
+                viewport.video_2_image(SEG_LENGTH, seg_id, VIDEO)
+
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
                 # read the user orientation file and skip the first line
                 # then, calculate the pixel viewer by user and render the viewport

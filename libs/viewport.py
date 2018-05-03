@@ -48,12 +48,13 @@ def video_2_image(seg_length, seg_id, video):
     filemanager.make_sure_path_exists(frame_path)
 
     # download the videos from encoding server
-    req_ts = time.time()
-    start_recv_ts = download_video_from_server(seg_length, seg_id, video)
-    end_recv_ts = time.time()
+    #req_ts = time.time()
+    #start_recv_ts = download_video_from_server(seg_length, seg_id, video)
+    #end_recv_ts = time.time()
 
     # clip video into frames
     path = tmp_path + str(video) + "_equir_" + str(seg_id) + ".mp4"
+    subprocess.call('mv %s %s' % (output_path + "output_" + str(seg_id) + ".mp4", path), shell=True)
     vidcap = cv2.VideoCapture(path)
     success, frame = vidcap.read()
     count = 1 
@@ -66,7 +67,7 @@ def video_2_image(seg_length, seg_id, video):
         print "Clip a new frame:", count
         count += 1 
 
-    return (req_ts, start_recv_ts, end_recv_ts)
+    #return (req_ts, start_recv_ts, end_recv_ts)
 
 
 def render_fov_local(index, viewed_fov=[]):
