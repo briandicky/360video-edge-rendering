@@ -10,7 +10,7 @@ In particular to prepare videos and run experiments for our proposals and papers
 - OpenCV
 - Cython
 
-This software was only tested on linux (Ubuntu16.04)
+This software was only tested on linux (Ubuntu16.04).
 
 
 ### How to compile .pyx using cython and gcc, then create shared library
@@ -47,9 +47,14 @@ python2.7 client.py
 vim server.py
 
 # viewing constants
-#MODE_MIXED = 1     -> render mixed quality tiles (i.e., bitrate allocation)
-#MODE_FOV = 0       -> render the tiles viewer by user
-#MODE_RENDER = 0    -> render the viewport of a viewer
+class RENDER(Enum):
+    CR = 1
+    TR = 2
+    VPR = 3
+    TR_only = 4
+
+# set rendering mode here
+MODE = RENDER.TR
 ```
 
 ### Check the logs
