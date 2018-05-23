@@ -1,17 +1,12 @@
 import numpy
 import math
-from PIL import Image
 
 PIXEL_MAX = 255.0
 
 NUM_POINTS = 655362
 
 def SPsnrNnCalc(img1, img2):
-    width, height = img1.size
-    img1_list = list(img1.getdata())
-    img2_list = list(img2.getdata())
-    img1_list = [img1_list[i * width:(i + 1) * width] for i in range(height)]
-    img2_list = [img2_list[i * width:(i + 1) * width] for i in range(height)]
+    height, width, channel = img1.shape
     #Load 655362 sample points
     with open("sphere_655362.txt") as f:
         content = f.readlines()
@@ -26,11 +21,11 @@ def SPsnrNnCalc(img1, img2):
     #Calculate S_PSNR_NN
     mse = 0
     for pt in rect_coord:
-        for ch in range(3):
+        for ch in range(channel):
             pt[0], pt[1] = int(round(pt[0])), int(round(pt[1])) #Nearest Neighbor
             pt[0] = width-1 if pt[0]>=width else pt[0]   #Longtidue
             pt[1] = height-1 if pt[1]>=height else pt[1] #Latitude
-            mse += (img1_list[pt[1]][pt[0]][ch] - img2_list[pt[1]][pt[0]][ch])**2
+            mse += (int(img1[pt[1]][pt[0]][ch]) - int(img2[pt[1]][pt[0]][ch]))**2
     mse = (mse/(width*height))/3
     if mse == 0:
         return 100
