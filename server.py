@@ -162,7 +162,8 @@ while True:
                     raise
 
                 user.readline()
-                for i in range(1, SEG_LENGTH * FPS + 1, 1):
+                #for i in range(1, SEG_LENGTH * FPS + 1, 1):
+                for i in range(1, 65, 1):
                     line = user.readline().strip().split(',')
                     yaw = float(line[7])
                     pitch = float(line[8])
