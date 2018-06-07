@@ -7,7 +7,8 @@ In particular to prepare videos and run experiments for our proposals and papers
 - Python2.7
 - FFmpeg
 - MP4Box
-- OpenCV
+- OpenCV-Python
+- NumPy
 - Cython
 
 This software was only tested on linux (Ubuntu16.04).
