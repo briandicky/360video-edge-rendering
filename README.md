@@ -9,6 +9,7 @@ In particular to prepare videos and run experiments for our proposals and papers
 - MP4Box
 - OpenCV-Python
 - NumPy
+- Pillow
 - Cython
 
 This software was only tested on linux (Ubuntu16.04).
