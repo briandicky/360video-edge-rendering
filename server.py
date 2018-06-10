@@ -43,6 +43,7 @@ EDGE_SERVER_PORT = 9487
 CHUNK_SIZE = 4096
 
 # compression constants
+BITRATE = 1
 NO_OF_TILES = tile_w*tile_h
 SEG_LENGTH = 4
 FPS = 30
@@ -173,7 +174,7 @@ while True:
                     viewport.render_fov_local(i, viewed_fov)
 
                 # concatenate all the frame into one video
-                viewport.concat_image_2_video(seg_id)
+                viewport.concat_image_2_video(BITRATE, seg_id)
                 user.close()
             elif MODE.name == "CR":
                 (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])

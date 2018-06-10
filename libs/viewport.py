@@ -94,9 +94,10 @@ def render_fov_local(index, viewed_fov=[]):
     print >> sys.stderr, "frame" + str(index) + ": " + path + " done."
 
 
-def concat_image_2_video(seg_id):
+def concat_image_2_video(BITRATE, seg_id):
     # concatenate all the frame into one video
-    ffmpeg = "ffmpeg -framerate " + str(FPS) + " -y -i " + tmp_path + "fov_temp%d.png -c:v libx265 -preset:v ultrafast -crf 20 -pix_fmt yuv420p " + output_path + "output_%s.mp4" % seg_id
+    #ffmpeg = "ffmpeg -framerate " + str(FPS) + " -y -i " + tmp_path + "fov_temp%d.png -c:v libx265 -preset:v ultrafast -crf 20 -pix_fmt yuv420p " + output_path + "output_%s.mp4" % seg_id
+    ffmpeg = "ffmpeg -framerate " + str(FPS) + " -y -i " + tmp_path + "fov_temp%d.png -c:v libx265 -b:v %sM -preset:v ultrafast -pix_fmt yuv420p " % BITRATE + output_path + "output_%s.mp4" % seg_id
     subprocess.call(ffmpeg, shell=True)
 
 
