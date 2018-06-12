@@ -64,7 +64,7 @@ def video_2_image(seg_length, seg_id, video):
         # save frame as PNG format
         cv2.imwrite(frame_path + "frame%d.png" % count, frame)
         success, frame = vidcap.read()
-        print "Clip a new frame:", count
+        print >> sys.stderr, "Clip a new frame:", count
         count += 1 
 
     #return (req_ts, start_recv_ts, end_recv_ts)
@@ -94,11 +94,22 @@ def render_fov_local(index, viewed_fov=[]):
     print >> sys.stderr, "frame" + str(index) + ": " + path + " done."
 
 
-def concat_image_2_video(seg_id):
+def concat_image_2_video(BITRATE, seg_id):
     # concatenate all the frame into one video
-    ffmpeg = "ffmpeg -framerate " + str(FPS) + " -y -i " + tmp_path + "fov_temp%d.png -c:v libx265 -preset:v ultrafast -crf 20 -pix_fmt yuv420p " + output_path + "output_%s.mp4" % seg_id
+    # convert png to yuv
+    ffmpeg = "ffmpeg -y -i " + tmp_path + "fov_temp%d.png -pix_fmt yuv420p " + tmp_path + "concat_frame.yuv"
     subprocess.call(ffmpeg, shell=True)
+    print >> sys.stderr, ffmpeg
 
+    # compress the yuv file
+    kvazaar = "kvazaar -i " + tmp_path + "concat_frame.yuv" + " --input-res=3840x1920 --input-fps 30.0 --bitrate " + str(int(BITRATE * math.pow(10, 6))) + " -o " + tmp_path + "concat_frame.hvc"
+    subprocess.call(kvazaar, shell=True)
+    print >> sys.stderr, kvazaar
+
+    # encapsulate hvc bitstream into mp4 container
+    mp4box = "MP4Box -add " + tmp_path + "concat_frame.hvc:fps=" + str(FPS) + " -new " + output_path + "output_%s.mp4" % seg_id
+    subprocess.call(mp4box, shell=True)
+    print >> sys.stderr, mp4box
 
 def create_image(i, j):
     # Create a new image with the given size
