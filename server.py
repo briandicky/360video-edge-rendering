@@ -43,7 +43,7 @@ EDGE_SERVER_PORT = 9487
 CHUNK_SIZE = 4096
 
 # compression constants
-BITRATE = 1
+BITRATE = 10
 NO_OF_TILES = tile_w*tile_h
 SEG_LENGTH = 4
 FPS = 30

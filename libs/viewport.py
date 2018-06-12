@@ -99,17 +99,15 @@ def concat_image_2_video(BITRATE, seg_id):
     # convert png to yuv
     ffmpeg = "ffmpeg -y -i " + tmp_path + "fov_temp%d.png -pix_fmt yuv420p " + tmp_path + "concat_frame.yuv"
     subprocess.call(ffmpeg, shell=True)
-    print >> sys.stderr, ffmpeg
 
     # compress the yuv file
     kvazaar = "kvazaar -i " + tmp_path + "concat_frame.yuv" + " --input-res=3840x1920 --input-fps 30.0 --bitrate " + str(int(BITRATE * math.pow(10, 6))) + " -o " + tmp_path + "concat_frame.hvc"
     subprocess.call(kvazaar, shell=True)
-    print >> sys.stderr, kvazaar
 
     # encapsulate hvc bitstream into mp4 container
     mp4box = "MP4Box -add " + tmp_path + "concat_frame.hvc:fps=" + str(FPS) + " -new " + output_path + "output_%s.mp4" % seg_id
     subprocess.call(mp4box, shell=True)
-    print >> sys.stderr, mp4box
+
 
 def create_image(i, j):
     # Create a new image with the given size
