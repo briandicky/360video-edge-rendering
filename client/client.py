@@ -25,8 +25,8 @@ yaw = -120.03605833333
 pitch = 0.103563888889
 roll = -3.993
 
-VIDEO = "game"
-ORIENTATION = "game_user03_orientation.csv"
+VIDEO = "coaster"
+ORIENTATION = "coaster_user03_orientation.csv"
 # End of constants
 
 # Create a TCP/IP socket

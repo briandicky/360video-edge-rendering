@@ -58,11 +58,10 @@ def video_2_image(seg_length, seg_id, video):
     vidcap = cv2.VideoCapture(path)
     success, frame = vidcap.read()
     count = 1 
-    success = True
 
     while success:
-        # save frame as PNG format
-        cv2.imwrite(frame_path + "frame%d.png" % count, frame)
+        # save frame as PNG format 
+        cv2.imwrite(frame_path + "frame%d.png" % count, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
         success, frame = vidcap.read()
         print >> sys.stderr, "Clip a new frame:", count
         count += 1 
@@ -90,7 +89,7 @@ def render_fov_local(index, viewed_fov=[]):
         pix[i, j] = get_pixel(im, i, j)
 
     path = tmp_path + "fov_temp" + str(index) + ".png" 
-    new.save(path, "PNG")
+    new.save(path, "PNG", compress_level=0)
     print >> sys.stderr, "frame" + str(index) + ": " + path + " done."
 
 
