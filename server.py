@@ -32,8 +32,8 @@ MODE = RENDER.VPR
 
 fov_degreew = 100
 fov_degreeh = 100
-tile_w = 3
-tile_h = 3
+tile_w = 5
+tile_h = 5
 
 # socket constants
 ENCODING_SERVER_ADDR = "140.114.77.170"
@@ -160,22 +160,26 @@ while True:
                 except IOError as e:
                     print >> sys.stderr, 'I/O error({0}): {1}'.format(e.errno, e.strerror)
                 except:
-                    print "Unexpected error:", sys.exc_info()[0]
+                    print >> sys.stderr, "Unexpected error:", sys.exc_info()[0]
                     raise
 
                 user.readline()
+                count = 0
                 #for i in range(1, SEG_LENGTH * FPS + 1, 1):
                 for i in range(1, 65, 1):
                     line = user.readline().strip().split(',')
                     yaw = float(line[7])
                     pitch = float(line[8])
                     roll = float(line[9])
-                    #print >> sys.stderr, line[7], line[8], line[9]
-                    viewed_fov = viewport.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+                    (viewed_fov, probs) = viewport.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
+                    count += viewport.count_tiles(probs)
                     viewport.render_fov_local(i, viewed_fov)
 
                 # concatenate all the frame into one video
-                viewport.concat_image_2_video(BITRATE, seg_id)
+                avg_tiles = count / 64.0
+                print >> sys.stderr, "Encoding bitrate: ", int(round(BITRATE * avg_tiles / NO_OF_TILES))
+                viewport.concat_image_2_video(int(round(BITRATE * avg_tiles / NO_OF_TILES)), seg_id)
+                #viewport.concat_image_2_video(int(BITRATE), seg_id)
                 user.close()
             elif MODE.name == "CR":
                 (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])

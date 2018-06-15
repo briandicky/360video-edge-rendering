@@ -41,6 +41,15 @@ def ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
     return cal_prob.gen_fov(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
 
 
+def count_tiles(prob):
+    num = 0
+    for i in range(0, len(prob), 1):
+        if prob[i] == 1:
+            num += 1
+
+    return num
+
+
 def video_2_image(seg_length, seg_id, video):
     # Check path and files existed or not
     filemanager.make_sure_path_exists(tmp_path)
