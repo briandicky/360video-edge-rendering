@@ -23,6 +23,7 @@ tmp_path = "./tmp/"
 frame_path = "./frame/"
 
 # Constants
+FLAG = 1
 FPS = 30
 ENCODING_SERVER_ADDR = "140.114.77.170"
 
@@ -42,9 +43,13 @@ def ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h):
     return corr_tiles
 
 
-def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, VIDEO,
-        low=[], medium=[], high=[]):
+def mixed_tiles_quality(no_of_tiles, seg_length, user_id, seg_id, VIDEO, bitrate, mode,low=[], medium=[], high=[]):
     # Check path and files existed or not
+    global tmp_path
+    tmp_path = "./tmp_"+ VIDEO + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate +'_'+ mode+ '/'
+    global output_path
+    output_path = "./output_"+ VIDEO + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate+'_' + mode+ '/'
+    
     filemanager.make_sure_path_exists(tmp_path)
     filemanager.make_sure_path_exists(output_path)
     filemanager.clean_exsited_files(tmp_path, output_path, seg_id)
@@ -55,32 +60,33 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, VIDEO,
     print >> sys.stderr, 'dash_set1_init.mp4'
 
     # Sort the tracks into tiled videos list
+    BR = bitrate+'_'
     for i in range(1, no_of_tiles+2, 1):
         if i == 1:
             # track1 is needed
-            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            debug_msg = "video_tiled_" + "1Mbps_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
             #print >> sys.stderr, debug_msg
-            video_list.append("video_tiled_" + "low_" + "dash_" 
+            video_list.append("video_tiled_" + "1Mbps_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in low:
-            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            debug_msg = "video_tiled_" + BR + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
             #print >> sys.stderr, debug_msg
-            video_list.append("video_tiled_" + "low_" + "dash_" 
+            video_list.append("video_tiled_" + BR + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in medium:
-            debug_msg = "video_tiled_" + "medium_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            debug_msg = "video_tiled_" + BR + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
             #print >> sys.stderr, debug_msg
-            video_list.append("video_tiled_" + "medium_" + "dash_" 
+            video_list.append("video_tiled_" + BR + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in high:
-            debug_msg = "video_tiled_" + "high_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            debug_msg = "video_tiled_" + BR + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
             #print >> sys.stderr, debug_msg
-            video_list.append("video_tiled_" + "high_" + "dash_" 
+            video_list.append("video_tiled_" + BR + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         else:
-            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            debug_msg = "video_tiled_" + BR + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
             #print >> sys.stderr, debug_msg
-            video_list.append("video_tiled_" + "low_" + "dash_"
+            video_list.append("video_tiled_" + BR + "dash_"
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
 
     # download the videos from encoding server
@@ -89,21 +95,22 @@ def mixed_tiles_quality(no_of_tiles, seg_length, seg_id, VIDEO,
     end_recv_ts = time.time()
     
     # Concatenate init track and each tiled tracks
+    offset = VIDEO + '_user'+ user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode
     for i in range(0, len(video_list), 1):
         subprocess.call('cat %s >> temp_%s.mp4' % 
-                ( (tmp_path + video_list[i]), seg_id), shell=True)
+                ( (tmp_path + video_list[i]), offset), shell=True)
 
     # Extract the raw hevc bitstream
-    subprocess.call('MP4Box -raw 1 temp_%s.mp4' % seg_id, shell=True)
+    subprocess.call('MP4Box -raw 1 temp_%s.mp4' % offset, shell=True)
 
     # Repackage and generate new ERP video
     subprocess.call('MP4Box -add temp_%s_track1.hvc:fps=%s -inter 0 -new output_%s.mp4' % 
-            (seg_id, FPS, seg_id), shell=True)
+            ( offset, FPS, offset), shell=True)
 
     # Move all the files into folders
-    subprocess.call('mv temp_%s.mp4 %s' % (seg_id, tmp_path), shell=True)
-    subprocess.call('mv temp_%s_track1.hvc %s' % (seg_id, tmp_path), shell=True)
-    subprocess.call('mv output_%s.mp4 %s' % (seg_id, output_path), shell=True)
+    subprocess.call('mv temp_%s.mp4 %s' % ( offset, tmp_path), shell=True)
+    subprocess.call('mv temp_%s_track1.hvc %s' % ( offset, tmp_path), shell=True)
+    subprocess.call('mv output_%s.mp4 %s' % ( offset, output_path), shell=True)
     return (req_ts, start_recv_ts, end_recv_ts)
 
 
@@ -122,29 +129,29 @@ def only_fov_tiles(no_of_tiles, seg_length, seg_id, VIDEO,
     for i in range(1, no_of_tiles+2, 1):
         if i == 1:
             # track1 is needed
-            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            debug_msg = "video_tiled_" + "1Mbps_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
             #print >> sys.stderr, debug_msg
-            video_list.append("video_tiled_" + "low_" + "dash_" 
+            video_list.append("video_tiled_" + "1Mbps_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in low:
-            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            debug_msg = "video_tiled_" + "2Mbps_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
             #print >> sys.stderr, debug_msg
-            video_list.append("video_tiled_" + "low_" + "dash_" 
+            video_list.append("video_tiled_" + "2Mbps_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in medium:
-            debug_msg = "video_tiled_" + "medium_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            debug_msg = "video_tiled_" + "2Mbps_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
             #print >> sys.stderr, debug_msg
-            video_list.append("video_tiled_" + "medium_" + "dash_" 
+            video_list.append("video_tiled_" + "2Mbps_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         elif i in high:
-            debug_msg = "video_tiled_" + "high_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            debug_msg = "video_tiled_" + "2Mbps_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
             #print >> sys.stderr, debug_msg
-            video_list.append("video_tiled_" + "high_" + "dash_" 
+            video_list.append("video_tiled_" + "2Mbps_" + "dash_" 
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
         else:
-            debug_msg = "video_tiled_" + "low_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
+            debug_msg = "video_tiled_" + "2Mbps_" + "dash_" + "track" + str(i) + "_" + str(seg_id) + ".m4s"
             #print >> sys.stderr, debug_msg
-            video_list.append("video_tiled_" + "low_" + "dash_"
+            video_list.append("video_tiled_" + "2Mbps_" + "dash_"
                     + "track" + str(i) + "_" + str(seg_id) + ".m4s")
                                                                      
     # download the videos from encoding server

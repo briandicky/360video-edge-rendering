@@ -6,232 +6,302 @@
 #   Date:
 #       2017.3.6
 
-import os 
+import os
+import shutil 
 import sys
 import math
 import socket
 import time 
 import errno
 import struct
-import pickle
+import cPickle
 import signal
+import subprocess
+import cv2
+import threading
+from multiprocessing import Process
 from enum import Enum
 from libs import tiled
 from libs import viewport
+from libs import VPsnrCalc
+from libs import PsnrCalc_tiled
+from libs import filemanager
 from socket import error as SocketError
 
-# viewing constants
-class RENDER(Enum):
-    CR = 1
-    TR = 2
-    VPR = 3
-    TR_only = 4
 
-# set rendering mode here
-MODE = RENDER.VPR
+class Server(Process):
+    fov_degree_w = 100
+    fov_degree_h = 100
+    tile_w = 5
+    tile_h = 5
+    # socket constants
+    ENCODING_SERVER_ADDR = "140.114.77.170"
+    ENCODING_SERVER_PORT = 80
+    CHUNK_SIZE = 4096
+    # compression constants
+    SEG_LENGTH = 4
+    FPS = 30
 
-fov_degreew = 100
-fov_degreeh = 100
-tile_w = 5
-tile_h = 5
+    psnr_path = "./PSNR/"
+    pkl_path = "./pickles/"
+    log_path = "./log/"
+    # viewing constants
 
-# socket constants
-ENCODING_SERVER_ADDR = "140.114.77.170"
-ENCODING_SERVER_PORT = 80
-EDGE_SERVER_ADDR = "140.114.77.125"
-EDGE_SERVER_PORT = 9487
-CHUNK_SIZE = 4096
+    def __init__( self, edge_server_addr, edge_server_port):
+	super(Server, self).__init__()
+	self.NO_OF_TILES = self.tile_w * self.tile_h
+	self.EDGE_SERVER_ADDR = edge_server_addr
+	self.EDGE_SERVER_PORT = edge_server_port
 
-# compression constants
-BITRATE = 10
-NO_OF_TILES = tile_w*tile_h
-SEG_LENGTH = 4
-FPS = 30
-BITRATE = 10 # Mbps
 
-# metadata constants
-#VIDEO = "game"
-#ORIENTATION = "./game_user03_orientation.csv"
+    def run( self):
 
-# debugging messages 
-print >> sys.stderr, "No. of tiles = %s x %s = %s" % (tile_w, tile_h, NO_OF_TILES)
-print >> sys.stderr, "FoV width = %s, FoV height = %s" % (fov_degreew, fov_degreeh)
-print >> sys.stderr, "Segment length = %s sec\n" % SEG_LENGTH
+	# debugging messages 
+	print >> sys.stderr, "No. of tiles = %s x %s = %s" % (self.tile_w, self.tile_h, self.NO_OF_TILES)
+	print >> sys.stderr, "FoV width = %s, FoV height = %s" % (self.fov_degree_w, self.fov_degree_h)
+	print >> sys.stderr, "Segment length = %s sec\n" % self.SEG_LENGTH
 
-# open the file for output messages
-f = open("./log.csv", "w")
-f.write("cloudip,cloudport,edgeip,edgeport,clientip,clientport,segid,Yaw,Pitch,Roll,clienreqts,edgerecv,edgereqts,edgestartrecvts,edgeendrecvts,clientrecvts,filesize(bytes)\n")
+        filemanager.make_sure_path_exists(self.psnr_path)
+        filemanager.make_sure_path_exists(self.pkl_path)
+        filemanager.make_sure_path_exists(self.log_path)
 
-# user orientation log file
-#user = open(ORIENTATION, "r")
-# End of constants
+	# Create a TCP/IP socket
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# signal handler
-def handler_sigint(signum, frame): 
-    print >> sys.stderr, 'KeyboardInterrupt, then close files and clean up all the connections'
-    f.close()
-    exit(0)
+	# Bind the socket to the port
+	server_address = (self.EDGE_SERVER_ADDR, self.EDGE_SERVER_PORT)
+	print >> sys.stderr, 'starting up on %s port %s' % server_address
+	sock.bind(server_address)
 
-def handler_sigterm(signum, frame):
-    print >> sys.stderr, 'Killed by user, then close files and clean up all the connections'
-    f.close()
-    exit(0)
+	# Listen for incoming connections
+	# Specifies the maximum number of queued connections (usually 5)
+	sock.listen(5)
 
-signal.signal(signal.SIGINT, handler_sigint)
-signal.signal(signal.SIGTERM, handler_sigterm)
-# end of signal handler
+	while True:
+	    # Wait for a connection 
+	    print >> sys.stderr, 'waiting for a connection...' 
+	    connection, client_address = sock.accept()
+	    try:
+		#print >> sys.stderr, 'connection:', connection
+		print >> sys.stderr, 'connection from', client_address
+		#shutil.rmtree("tmp/")
 
-# Create a TCP/IP socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		# Receive the data in small chunks and retransmit it
+		data = connection.recv(self.CHUNK_SIZE)
+		edgerecvts = time.time()
+		print >> sys.stderr, 'received "%s"' % data
+		
+		if data:
+		    # process the data receved from client
+		    ori = data.split(",")
 
-# Bind the socket to the port
-server_address = (EDGE_SERVER_ADDR, EDGE_SERVER_PORT)
-print >> sys.stderr, 'starting up on %s port %s' % server_address
-sock.bind(server_address)
+		    # calculate orientation and repackage tiled video
+		    seg_id = int(ori[1])
+		    yaw = float(ori[2])
+		    pitch = float(ori[3])
+		    roll = float(ori[4])
+		    VIDEO = str(ori[5])
+		    user_id = ori[6]
+		    #ORIENTATION = str(ori[6])
+		    mode = str(ori[7])
+		    bitrate = str(ori[8])
+		    
+		    ORIENTATION = VIDEO+'_user'+user_id+"_orientation.csv"
+		    if mode == "TR":
+			print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
+			viewed_tiles = tiled.ori_2_tiles(yaw, pitch, self.fov_degree_w, self.fov_degree_h, self.tile_w, self.tile_h)
+		    elif mode == "TR_only":
+			print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
+			viewed_tiles = tiled.ori_2_tiles(yaw, pitch, self.fov_degree_w, self.fov_degree_h, self.tile_w, self.tile_h) #100 100 5 5
+		    elif mode == "VPR":
+			viewed_tiles = []
+			for i in range(1, (self.tile_w*self.tile_h + 2), 1):
+			    viewed_tiles.append(i)
+		    elif mode == "CR":
+			viewed_tiles = []
+			for i in range(1, (self.tile_w*self.tile_h + 2), 1):
+			    viewed_tiles.append(i)
+		    else:
+			print >> sys.stderr, 'GGGGGGGGGGGGG'
+			exit(0)
 
-# Listen for incoming connections
-# Specifies the maximum number of queued connections (usually 5)
-sock.listen(5)
+		    # CR: do nothing
+		    # TR: mixed different quality tiles 
+		    # TR_only: only viewed tiles 
+		    # VPR: only render the pixels in user's viewport
+		    print >> sys.stderr, '\nencapsulating different quality tiles track into ERP mp4 format...'
 
-while True:
-    # Wait for a connection 
-    print >> sys.stderr, 'waiting for a connection...' 
-    connection, client_address = sock.accept()
-    try:
-        #print >> sys.stderr, 'connection:', connection
-        print >> sys.stderr, 'connection from', client_address
+		    repo = "output_" + VIDEO + '_user'+ user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode + "/"
+	            the_file = "output_" + VIDEO + '_user'+ user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode + ".mp4"
+		    psnr_list = []
+		    psnr_name = "./PSNR/psnr_"+VIDEO + '_user'+ user_id+ '_' + str(seg_id)+'_'+bitrate+'_'+mode+".csv"
+		    if mode == "TR":
+			(reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(self.NO_OF_TILES, self.SEG_LENGTH, user_id, seg_id, VIDEO, bitrate, mode, [], viewed_tiles, [])
+			expe = cv2.VideoCapture(repo + the_file)
+			cont = cv2.VideoCapture("./360videos_60s/"+VIDEO+"_equir.mp4")
+			frame_no = (seg_id - 1)*64 + 1
+			for i in range(frame_no-1):
+			    ret, imgC = cont.read()
+			while(True):
+			    ret, imgE = expe.read()
+			    if(imgE is None):
+				print >> sys.stderr, "next clip..."
+				break
+			    ret, imgC = cont.read()
+			    if(imgC is None):
+				print >> sys.stderr, "Error occured. Cannot read the video."
+				break
+			    psnr = PsnrCalc_tiled.PsnrTiledCalc(imgE, imgC, viewed_tiles)
+			    print(str(frame_no)+" tiled_psnr:          "+str(psnr))
+			    psnr_list.append(psnr)
+			    
+			    f = open(psnr_name, "a")
+			    f.write(str(frame_no).ljust(15)+',')
+			    f.write(str(psnr).rjust(15))
+			    f.write('\n')
+			    f.close()
+			    frame_no += 1
+			    #if( (frame_no%T) != 0 or frame_no < next_frame):
+			    #    frame_no += 1
+			    #    continue
+		        f = open(psnr_name, "a")
+			f.write("avg_psnr, ")
+			f.write(str(sum(psnr_list)/len(psnr_list)))
+			f.write('\n')
+			f.close()
+			    
+		    elif mode == "TR_only":
+			(reqts, start_recvts, end_recvts) = tiled.only_fov_tiles(self.NO_OF_TILES, self.SEG_LENGTH, seg_id, VIDEO, bitrate, [], viewed_tiles, [])
+		    elif mode == "VPR":
+			(reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(self.NO_OF_TILES, self.SEG_LENGTH, user_id, seg_id, VIDEO, bitrate, mode, [], viewed_tiles, [])
 
-        # Receive the data in small chunks and retransmit it
-        data = connection.recv(CHUNK_SIZE)
-        edgerecvts = time.time()
-        print >> sys.stderr, 'received "%s"' % data
-        
-        if data:
-            # process the data receved from client
-            ori = data.split(",")
+			viewport.video_2_image(self.SEG_LENGTH, user_id, seg_id, VIDEO, bitrate)
 
-            # calculate orientation and repackage tiled video
-            seg_id = int(ori[1])
-            yaw = float(ori[2])
-            pitch = float(ori[3])
-            roll = float(ori[4])
-            VIDEO = str(ori[5])
-            ORIENTATION = str(ori[6])
+			print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
+			# read the user orientation file and skip the first line
+			# then, calculate the pixel viewer by user and render the viewport
+			# no_frames = self.SEG_LENGTH * self.FPS
 
-            if MODE.name == "TR":
-                print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
-                viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-            elif MODE.name == "TR_only":
-                print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
-                viewed_tiles = tiled.ori_2_tiles(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-            elif MODE.name == "VPR":
-                viewed_tiles = []
-                for i in range(1, (tile_w*tile_h + 2), 1):
-                    viewed_tiles.append(i)
-            elif MODE.name == "CR":
-                viewed_tiles = []
-                for i in range(1, (tile_w*tile_h + 2), 1):
-                    viewed_tiles.append(i)
-            else:
-                print >> sys.stderr, 'GGGGGGGGGGGGG'
-                exit(0)
+			try:
+			    user = open("./360dataset/sensory/orientation/" + ORIENTATION, "r")
+			except IOError as e:
+			    print >> sys.stderr, 'I/O error({0}): {1}'.format(e.errno, e.strerror)
+			except:
+			    print "Unexpected error:", sys.exc_info()[0]
+			    raise
 
-            # CR: do nothing
-            # TR: mixed different quality tiles 
-            # TR_only: only viewed tiles 
-            # VPR: only render the pixels in user's viewport
-            print >> sys.stderr, '\nencapsulating different quality tiles track into ERP mp4 format...'
-            if MODE.name == "TR":
-                (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
-            elif MODE.name == "TR_only":
-                (reqts, start_recvts, end_recvts) = tiled.only_fov_tiles(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
-            elif MODE.name == "VPR":
-                (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
+			user.readline()
+			for i in range(64*(seg_id-1)):
+			    user.readline()
+			kkk = 73 if seg_id == 28 else 65
+				
+			for i in range(1, kkk, 1):
+			    line = user.readline().strip().split(',')
+			    yaw = float(line[7])
+			    pitch = float(line[8])
+			    roll = float(line[9])
+			    pickle_path = "./pickles/fov_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+'_'+ str(i)+".pkl"
+                            if (os.path.isfile(pickle_path)):
+                                viewed_fov = cPickle.load(open(pickle_path, "rb"))
+                            else:
+			        viewed_fov = viewport.ori_2_viewport(yaw, pitch, self.fov_degree_w, self.fov_degree_h, self.tile_w, self.tile_h)
+			        cPickle.dump( viewed_fov, open(pickle_path, "wb"))
+			    viewport.render_fov_local( VIDEO, user_id, seg_id, i, bitrate, viewed_fov)
+			# concatenate all the frame into one video
+			viewport.concat_image_2_video( VIDEO, user_id, seg_id, bitrate)
+			user.close()
+			expe = cv2.VideoCapture(repo+the_file)
+			cont = cv2.VideoCapture("./360videos_60s/"+VIDEO+"_equir.mp4")
+			frame_no = (seg_id - 1)*64 + 1
+			for i in range(frame_no-1):
+			    ret, imgC = cont.read()
+			while(True):
+			    ret, imgE = expe.read()
+			    if(imgE is None):
+				print >> sys.stderr, "next clip..."
+				break
+			    ret, imgC = cont.read()
+			    if(imgC is None):
+				print >> sys.stderr, "Error occured. Cannot read the video."
+				break
+			    tmp = frame_no%64 if frame_no%64!=0 else 64
+			    pickle_path = "./pickles/fov_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+'_'+str(tmp)+".pkl"
+			    viewed_fov = cPickle.load(open(pickle_path,"rb"))
+			    psnr = VPsnrCalc.VPsnrCalc(imgE, imgC, viewed_fov)
+			    psnr_list.append(psnr)
+			    print(str(frame_no)+" viewport_psnr:        "+str(psnr))
+			    #filemanager.make_sure_path_exists("./PSNR")
+			    f = open(psnr_name, "a")
+			    f.write(str(frame_no).ljust(15)+',')
+			    f.write(str(psnr).rjust(15))
+			    f.write('\n')
+			    f.close()
+			    frame_no += 1
+			for i in range(1, kkk):
+			    pkk = "./pickles/fov_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+'_'+str(i)+".pkl"
+			    os.remove(pkk)
+			shutil.rmtree("./tmp_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode)
+			shutil.rmtree("./frame_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode)
+		        f = open(psnr_name, "a")
+			f.write("avg_psnr, ")
+			f.write(str(sum(psnr_list)/len(psnr_list)))
+			f.write('\n')
+			f.close()
+		    elif mode == "CR":
+			tiled.mixed_tiles_quality(self.NO_OF_TILES, self.SEG_LENGTH, user_id, seg_id, VIDEO, bitrate, mode, [], viewed_tiles, [])
+		    else:
+			print >> sys.stderr, 'GGGGGGGGGGGGG'
+			exit(0)
 
-                viewport.video_2_image(SEG_LENGTH, seg_id, VIDEO)
+		    # sending ERP mp4 format video back to client
+		    print >> sys.stderr, '\nsending video back to the client'
+		    path_of_video = repo + the_file
+		    video = open(path_of_video).read() 
+		    video_size = os.path.getsize(path_of_video)
+		    connection.sendall(video)
+		    clientrecvts = time.time()
+		    # seperate video into small chunks then transmit each of them
+		    #count = 0
+		    #while count < len(video):
+		    #    chunk = video[count:count+self.CHUNK_SIZE]
+		    #    connection.sendall(chunk)
+		    #    count += self.CHUNK_SIZE
+		    print >> sys.stderr, 'finished sending video\n'
+		    connection.close()
 
-                print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
-                # read the user orientation file and skip the first line
-                # then, calculate the pixel viewer by user and render the viewport
-                # no_frames = SEG_LENGTH * FPS
+		    # cloud server info
+		    log_path = "./log/LOG_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+".csv"
+		    f = open( log_path, "a")
+		    f.write(str(self.ENCODING_SERVER_ADDR) + ",")
+		    f.write(str(self.ENCODING_SERVER_PORT) + ",")
 
-                try:
-                    user = open("./360dataset/sensory/orientation/" + ORIENTATION, "r")
-                except IOError as e:
-                    print >> sys.stderr, 'I/O error({0}): {1}'.format(e.errno, e.strerror)
-                except:
-                    print >> sys.stderr, "Unexpected error:", sys.exc_info()[0]
-                    raise
+		    # edge server info
+		    f.write(str(self.EDGE_SERVER_ADDR) + ",")
+		    f.write(str(self.EDGE_SERVER_PORT) + ",")
+		
+		    # edn client info
+		    f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
+		    f.write(str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4]) + ",")
 
-                user.readline()
-                count = 0
-                #for i in range(1, SEG_LENGTH * FPS + 1, 1):
-                for i in range(1, 65, 1):
-                    line = user.readline().strip().split(',')
-                    yaw = float(line[7])
-                    pitch = float(line[8])
-                    roll = float(line[9])
-                    (viewed_fov, probs) = viewport.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
-                    count += viewport.count_tiles(probs)
-                    viewport.render_fov_local(i, viewed_fov)
+		    # edge/client request and recv time 
+		    # (clienreqts,edgerecvts,edgereqts,edgestartrecvts,edgeendrecvts,clientrecvts,filesize")
+		    f.write(str(ori[0]) + ",") # clientreqts
+		    f.write(str(format(edgerecvts, '.6f')) + ",") # edgerecvts
+		    f.write(str(format(reqts, '.6f')) + "," + str(format(start_recvts, '.6f')) + "," + str(format(end_recvts, '.6f')) + ",") # edgereqts, edgestartrecvts, edgeendrecvts
+		    f.write(str(format(clientrecvts, '.6f')) + ",") # clientrecvts
+		    f.write(str(video_size)) # total file that are transferred to client
+		    f.write("\n")
+		    f.close()
+		    
+		else:
+		    print >> sys.stderr, 'no more data from\n', client_address
+		    break
 
-                # concatenate all the frame into one video
-                avg_tiles = count / 64.0
-                print >> sys.stderr, "Encoding bitrate: ", int(round(BITRATE * avg_tiles / NO_OF_TILES))
-                viewport.concat_image_2_video(int(round(BITRATE * avg_tiles / NO_OF_TILES)), seg_id)
-                #viewport.concat_image_2_video(int(BITRATE), seg_id)
-                user.close()
-            elif MODE.name == "CR":
-                (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
-            else:
-                print >> sys.stderr, 'GGGGGGGGGGGGG'
-                exit(0)
+	    except SocketError as e:
+		if e.errno != errno.ECONNRESET:
+		    raise # Not error we are looking for
+		pass # Handle error here.
 
-            # sending ERP mp4 format video back to client
-            print >> sys.stderr, '\nsending video back to the client'
-            path_of_video = "./output/" + "output_" + str(seg_id) + ".mp4"
-            video = open(path_of_video).read() 
-            video_size = os.path.getsize(path_of_video)
-            connection.sendall(video)
-            clientrecvts = time.time()
-            # seperate video into small chunks then transmit each of them
-            #count = 0
-            #while count < len(video):
-            #    chunk = video[count:count+CHUNK_SIZE]
-            #    connection.sendall(chunk)
-            #    count += CHUNK_SIZE
-            print >> sys.stderr, 'finished sending video\n'
-            connection.close()
-
-            # cloud server info 
-            f.write(str(ENCODING_SERVER_ADDR) + ",")
-            f.write(str(ENCODING_SERVER_PORT) + ",")
-
-            # edge server info
-            f.write(str(EDGE_SERVER_ADDR) + ",")
-            f.write(str(EDGE_SERVER_PORT) + ",")
-        
-            # edn client info
-            f.write(str(client_address[0]) + "," + str(client_address[1]) + ",")
-            f.write(str(ori[1]) + "," + str(ori[2]) + "," + str(ori[3]) + "," + str(ori[4]) + ",")
-
-            # edge/client request and recv time 
-            # (clienreqts,edgerecvts,edgereqts,edgestartrecvts,edgeendrecvts,clientrecvts,filesize")
-            f.write(str(ori[0]) + ",") # clientreqts
-            f.write(str(format(edgerecvts, '.6f')) + ",") # edgerecvts
-            f.write(str(format(reqts, '.6f')) + "," + str(format(start_recvts, '.6f')) + "," + str(format(end_recvts, '.6f')) + ",") # edgereqts, edgestartrecvts, edgeendrecvts
-            f.write(str(format(clientrecvts, '.6f')) + ",") # clientrecvts
-            f.write(str(video_size)) # total file that are transferred to client
-            f.write("\n")
-        else:
-            print >> sys.stderr, 'no more data from\n', client_address
-            break
-
-    except SocketError as e:
-        if e.errno != errno.ECONNRESET:
-            raise # Not error we are looking for
-        pass # Handle error here.
-
-    finally:
-        # Clean up the connection
-        connection.close()
+	    finally:
+		# Clean up the connection
+		connection.close()
