@@ -56,24 +56,49 @@ def video_2_image(seg_length, seg_id, video):
     filemanager.make_sure_path_exists(output_path)
     filemanager.make_sure_path_exists(frame_path)
 
-    # download the videos from encoding server
-    #req_ts = time.time()
-    #start_recv_ts = download_video_from_server(seg_length, seg_id, video)
-    #end_recv_ts = time.time()
-
     # clip video into frames
-    path = tmp_path + str(video) + "_equir_" + str(seg_id) + ".mp4"
-    subprocess.call('mv %s %s' % (output_path + "output_" + str(seg_id) + ".mp4", path), shell=True)
-    vidcap = cv2.VideoCapture(path)
-    success, frame = vidcap.read()
-    count = 1 
+    mp4_path = tmp_path + str(video) + "_equir_" + str(seg_id) + ".mp4"
+    subprocess.call('mv %s %s' % (output_path + "output_" + str(seg_id) + ".mp4", mp4_path), shell=True)
 
-    while success:
-        # save frame as PNG format 
-        cv2.imwrite(frame_path + "frame%d.png" % count, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
-        success, frame = vidcap.read()
-        print >> sys.stderr, "Clip a new frame:", count
-        count += 1 
+    yuv_path = tmp_path + str(video) + "_equir_" + str(seg_id) + ".yuv"
+    conv2yuv = "ffmpeg -y -i " + mp4_path + " -c:v rawvideo -pix_fmt yuv420p " + yuv_path
+    subprocess.call(conv2yuv, shell=True)
+
+    vidcap = cv2.VideoCapture(mp4_path)
+    if vidcap.isOpened():
+        # get vidcap property 
+        width = vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)    # get width 
+        height = vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # get height
+        fps = vidcap.get(cv2.CAP_PROP_FPS)              # get fps
+        length = vidcap.get(cv2.CAP_PROP_FRAME_COUNT)   # get length
+    print(length)
+
+    depth = 3
+    noframe = 1
+    ratio = 2 # YUV420: (4Y+1Cb+1Cr) = 12 bits per pixel
+    frame_size = int(width * height * depth / ratio * noframe) # bytes
+
+    # clip each frame form yuv video
+    with open(yuv_path, 'rb') as vid_in:
+        for i in range(1, int(length) + 1):
+            # read data from yuv file
+            frame_data = vid_in.read(frame_size)
+            # output it as 1-frame long yuv file
+            filename = frame_path + "frame" + str(i) + ".yuv"
+            output_frame = open(filename, "w")
+            output_frame.write(frame_data)
+            print >> sys.stderr, "Clip a new frame:", filename
+
+
+    #success, frame = vidcap.read()
+    #count = 1 
+
+    #while success:
+    #    # save frame as PNG format 
+    #    cv2.imwrite(frame_path + "frame%d.png" % count, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+    #    success, frame = vidcap.read()
+    #    print >> sys.stderr, "Clip a new frame:", count
+    #    count += 1 
 
     #return (req_ts, start_recv_ts, end_recv_ts)
 
