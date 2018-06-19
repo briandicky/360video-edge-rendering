@@ -12,6 +12,7 @@ import math
 import subprocess 
 import cv2 
 import time 
+import numpy
 from libs import cal_prob
 from libs import filemanager
 from PIL import Image, ImageDraw
@@ -46,11 +47,10 @@ def count_tiles(prob):
     for i in range(0, len(prob), 1):
         if prob[i] == 1:
             num += 1
-
     return num
 
 
-def video_2_image(seg_length, seg_id, video):
+def video_2_image(seg_id, video):
     # Check path and files existed or not
     filemanager.make_sure_path_exists(tmp_path)
     filemanager.make_sure_path_exists(output_path)
@@ -67,16 +67,14 @@ def video_2_image(seg_length, seg_id, video):
     vidcap = cv2.VideoCapture(mp4_path)
     if vidcap.isOpened():
         # get vidcap property 
-        width = vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)    # get width 
-        height = vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # get height
-        fps = vidcap.get(cv2.CAP_PROP_FPS)              # get fps
-        length = vidcap.get(cv2.CAP_PROP_FRAME_COUNT)   # get length
-    print(length)
+        width = int(vidcap.get(cv2.CAP_PROP_FRAME_WIDTH))    # get width 
+        height = int(vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # get height
+        fps = int(vidcap.get(cv2.CAP_PROP_FPS))              # get fps
+        length = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))   # get length
 
     depth = 3
-    noframe = 1
     ratio = 2 # YUV420: (4Y+1Cb+1Cr) = 12 bits per pixel
-    frame_size = int(width * height * depth / ratio * noframe) # bytes
+    frame_size = int(width * height * depth / ratio ) # bytes per frame
 
     # clip each frame form yuv video
     with open(yuv_path, 'rb') as vid_in:
@@ -89,42 +87,135 @@ def video_2_image(seg_length, seg_id, video):
             output_frame.write(frame_data)
             print >> sys.stderr, "Clip a new frame:", filename
 
-
-    #success, frame = vidcap.read()
-    #count = 1 
-
-    #while success:
-    #    # save frame as PNG format 
-    #    cv2.imwrite(frame_path + "frame%d.png" % count, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
-    #    success, frame = vidcap.read()
-    #    print >> sys.stderr, "Clip a new frame:", count
-    #    count += 1 
-
     #return (req_ts, start_recv_ts, end_recv_ts)
 
 
-def render_fov_local(index, viewed_fov=[]):
+def render_fov_local(index, seg_id, video, viewed_fov=[]):
+    # get image infos
+    mp4_path = tmp_path + str(video) + "_equir_" + str(seg_id) + ".mp4"
+    vidcap = cv2.VideoCapture(mp4_path)
+    if vidcap.isOpened():
+        # get vidcap property 
+        width = int(vidcap.get(cv2.CAP_PROP_FRAME_WIDTH))    # get width 
+        height = int(vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # get height
+        fps = int(vidcap.get(cv2.CAP_PROP_FPS))              # get fps
+        length = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))   # get length
+
+    depth = 3
+    ratio = 2 # YUV420: (4Y+1Cb+1Cr) = 12 bits per pixel
+    frame_size = int(width * height * depth / ratio) # bytes per frame
+
     # open the image which can be many different formats
-    ori_path = frame_path + "frame" + str(index) + ".png"
-    im = Image.open(ori_path, "r")
+    ori_path= frame_path + "frame" + str(index) + ".yuv"
+    (Y, U, V) = video2YCbCr(ori_path, width, height)
 
-    # get image size
-    width, height = im.size
-
-    # create new image and a pixel map
-    new = create_image(width, height)
-    pix = new.load()
+    ret_Y = numpy.zeros([width, height], numpy.uint8, 'C')    
+    ret_U = numpy.zeros([width // 2, height // 2], numpy.uint8, 'C')    
+    ret_V = numpy.zeros([width // 2, height // 2], numpy.uint8, 'C')
 
     # get the pixel in viewport
     size = len(viewed_fov)
-    for x in range(0, size, 1):
-        i = viewed_fov[x][0]
-        j = viewed_fov[x][1]
-        pix[i, j] = get_pixel(im, i, j)
+    for i in range(0, size):
+        w = int(viewed_fov[i][0])
+        h = int(viewed_fov[i][1])
+        ret_Y[w, h] = Y[w, h]
+        ret_U[w // 2, h // 2] = U[w // 2, h // 2]
+        ret_V[w // 2, h // 2] = V[w // 2, h // 2]
 
-    path = tmp_path + "fov_temp" + str(index) + ".png" 
-    new.save(path, "PNG", compress_level=0)
-    print >> sys.stderr, "frame" + str(index) + ": " + path + " done."
+    #print >> sys.stderr, ret_Y.ndim, ret_Y.shape, ret_Y.dtype
+    #print >> sys.stderr, "ret_Y =", ret_Y 
+    #print >> sys.stderr, ret_U.ndim, ret_U.shape, ret_U.dtype
+    #print >> sys.stderr, "ret_U =", ret_U
+    #print >> sys.stderr, ret_V.ndim, ret_V.shape, ret_V.dtype
+    #print >> sys.stderr, "ret_V =", ret_V
+
+    # turn the 2D array to 1D array then concatenate
+    # arrays should be passed as an iterable (a tuple or list)
+    tmp = numpy.concatenate( (ret_Y.reshape(-1), ret_U.reshape(-1)) )
+    ret = numpy.concatenate( (tmp, ret_V.reshape(-1)) )
+
+    new_path = tmp_path + "fov_temp" + str(index) + ".yuv" 
+    ret.tofile(new_path, "")
+    print >> sys.stderr, "frame" + str(index) + ": " + new_path + " done."
+
+
+def video2YCbCr(filename, width, height):    
+    fp = open(filename, "rb")    
+    print >> sys.stderr, "Read yuv frame:", filename
+    print >> sys.stderr, "width =", width, ", height =", height
+
+    d00 = width // 2
+    d01 = height // 2
+
+    Y = numpy.zeros([width, height], numpy.uint8, 'C')    
+    U = numpy.zeros([d00, d01], numpy.uint8, 'C')    
+    V = numpy.zeros([d00, d01], numpy.uint8, 'C')
+
+    for m in range(width):    
+        for n in range(height):    
+            Y[m, n] = ord(fp.read(1))    
+    for m in range(d00):    
+        for n in range(d01):    
+            U[m, n] = ord(fp.read(1))    
+    for m in range(d00):    
+        for n in range(d01):    
+            V[m, n] = ord(fp.read(1))    
+
+    fp.close()    
+    return (Y, U, V)
+
+
+
+#def video_2_image(seg_length, seg_id, video):
+#    # Check path and files existed or not
+#    filemanager.make_sure_path_exists(tmp_path)
+#    filemanager.make_sure_path_exists(output_path)
+#    filemanager.make_sure_path_exists(frame_path)
+#
+#    # download the videos from encoding server
+#    #req_ts = time.time()
+#    #start_recv_ts = download_video_from_server(seg_length, seg_id, video)
+#    #end_recv_ts = time.time()
+#
+#    # clip video into frames
+#    path = tmp_path + str(video) + "_equir_" + str(seg_id) + ".mp4"
+#    subprocess.call('mv %s %s' % (output_path + "output_" + str(seg_id) + ".mp4", path), shell=True)
+#    vidcap = cv2.VideoCapture(path)
+#    success, frame = vidcap.read()
+#    count = 1 
+#
+#    while success:
+#        # save frame as PNG format 
+#        cv2.imwrite(frame_path + "frame%d.png" % count, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0]) 
+#        success, frame = vidcap.read()
+#        print >> sys.stderr, "Clip a new frame:", count
+#        count += 1 
+#
+#    #return (req_ts, start_recv_ts, end_recv_ts)
+#
+#
+#def render_fov_local(index, viewed_fov=[]):
+#    # open the image which can be many different formats
+#    ori_path = frame_path + "frame" + str(index) + ".png"
+#    im = Image.open(ori_path, "r")
+#
+#    # get image size
+#    width, height = im.size
+#
+#    # create new image and a pixel map
+#    new = create_image(width, height)
+#    pix = new.load()
+#
+#    # get the pixel in viewport
+#    size = len(viewed_fov)
+#    for x in range(0, size, 1):
+#        i = viewed_fov[x][0]
+#        j = viewed_fov[x][1]
+#        pix[i, j] = get_pixel(im, i, j)
+#
+#    path = tmp_path + "fov_temp" + str(index) + ".png" 
+#    new.save(path, "PNG", compress_level=0)
+#    print >> sys.stderr, "frame" + str(index) + ": " + path + " done."
 
 
 def concat_image_2_video(BITRATE, seg_id):
