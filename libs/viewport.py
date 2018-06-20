@@ -88,8 +88,6 @@ def video_2_yuvframe(seg_id, video):
             output_frame.write(frame_data)
             print >> sys.stderr, "Clip a new frame:", filename
 
-    #return (req_ts, start_recv_ts, end_recv_ts)
-
 
 def render_fov(index, seg_id, video, viewed_fov=[]):
     # get image infos
@@ -111,9 +109,9 @@ def render_fov(index, seg_id, video, viewed_fov=[]):
     (Y, U, V) = video2YCbCr(ori_path, width, height)
 
     # initialize the YUV map
-    ret_Y = numpy.zeros([width, height], numpy.uint8, 'C')    
-    ret_U = numpy.zeros([width // 2, height // 2], numpy.uint8, 'C')    
-    ret_V = numpy.zeros([width // 2, height // 2], numpy.uint8, 'C')
+    ret_Y = numpy.zeros([height, width], numpy.uint8, 'C')    
+    ret_U = numpy.zeros([height // 2, width // 2], numpy.uint8, 'C')    
+    ret_V = numpy.zeros([height // 2, width // 2], numpy.uint8, 'C')
 
 
     # get the pixel in viewport
@@ -121,9 +119,9 @@ def render_fov(index, seg_id, video, viewed_fov=[]):
     for i in range(0, size):
         w = int(viewed_fov[i][0])
         h = int(viewed_fov[i][1])
-        ret_Y[w, h] = Y[w, h]
-        ret_U[w // 2, h // 2] = U[w // 2, h // 2]
-        ret_V[w // 2, h // 2] = V[w // 2, h // 2]
+        ret_Y[h, w] = Y[h, w]
+        ret_U[h // 2, w // 2] = U[h // 2, w // 2]
+        ret_V[h // 2, w // 2] = V[h // 2, w // 2]
 
     #print >> sys.stderr, ret_Y.ndim, ret_Y.shape, ret_Y.dtype
     #print >> sys.stderr, "ret_Y =", ret_Y 
@@ -139,23 +137,23 @@ def render_fov(index, seg_id, video, viewed_fov=[]):
 
     new_path = tmp_path + "fov_temp" + str(index) + ".yuv" 
     ret.tofile(new_path, "")
-    print >> sys.stderr, "frame" + str(index) + ": " + new_path + " done."
+    print >> sys.stderr, frame_path + "frame" + str(index) + ".yuv" + " --> " + tmp_path + "fov_temp" + str(index) + ".yuv"
 
 
 def video2YCbCr(filename, width, height):    
     fp = open(filename, "rb")    
     print >> sys.stderr, "Read YUV frame:", filename
-    print >> sys.stderr, "width =", width, ", height =", height
+    #print >> sys.stderr, "width =", width, ", height =", height
 
-    d00 = width // 2
-    d01 = height // 2
+    d00 = height // 2
+    d01 = width // 2
 
-    Y = numpy.zeros([width, height], numpy.uint8, 'C')    
+    Y = numpy.zeros([height, width], numpy.uint8, 'C')    
     U = numpy.zeros([d00, d01], numpy.uint8, 'C')    
     V = numpy.zeros([d00, d01], numpy.uint8, 'C')
 
-    for m in range(width):    
-        for n in range(height):    
+    for m in range(height):    
+        for n in range(width):    
             Y[m, n] = ord(fp.read(1))    
     for m in range(d00):    
         for n in range(d01):    
@@ -179,17 +177,14 @@ def concat_image_2_video(BITRATE, video, seg_id):
         fps = int(vidcap.get(cv2.CAP_PROP_FPS))              # get fps
         length = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))   # get length
 
-    # concatenate all the frame into one video
     # merge yuv frames into one yuv
     frame_list = []
-
     for i in range(1, length + 1):
         frame_name = tmp_path + "fov_temp" + str(i) + ".yuv" 
         frame_list.append(frame_name)
     
-    for i in range(1, len(frame_list)):
+    for i in range(0, len(frame_list)):
         subprocess.call('cat %s >> %s' % (frame_list[i], tmp_path) + 'concat_frame.yuv', shell=True)
-        print(i)
 
     # compress the yuv file
     kvazaar = "kvazaar -i " + tmp_path + "concat_frame.yuv" + " --input-res=3840x1920 --input-fps 30.0 --bitrate " + str(int(BITRATE * math.pow(10, 6))) + " -o " + tmp_path + "concat_frame.hvc"
