@@ -187,7 +187,7 @@ def concat_image_2_video(BITRATE, video, seg_id):
         subprocess.call('cat %s >> %s' % (frame_list[i], tmp_path) + 'concat_frame.yuv', shell=True)
 
     # compress the yuv file
-    kvazaar = "kvazaar -i " + tmp_path + "concat_frame.yuv" + " --input-res=3840x1920 --input-fps 30.0 --bitrate " + str(int(BITRATE * math.pow(10, 6))) + " -o " + tmp_path + "concat_frame.hvc"
+    kvazaar = "kvazaar -i " + tmp_path + "concat_frame.yuv" + " --input-res=3840x1920 --input-fps 30.0 --bitrate " + str(int(BITRATE * math.pow(10, 6))) + " -o " + tmp_path + "concat_frame.hvc" + " 2>&1 | tee " + tmp_path + "psnr_" + video + '_' + str(seg_id) + '_' + str(BITRATE) + "_VPR.csv"
     subprocess.call(kvazaar, shell=True)
 
     # encapsulate hvc bitstream into mp4 container
