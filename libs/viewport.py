@@ -70,7 +70,7 @@ def video_2_yuvframe(user_id, seg_id, video, bitrate):
     subprocess.call('mv %s %s' % (output_path + mp4_path, tmp_path + mp4_path), shell=True)
 
     yuv_path = "output_" + video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + "_VPR.yuv"
-    conv2yuv = "ffmpeg -y -i " + tmp_path + mp4_path + " -c:v rawvideo -pix_fmt yuv420p " + yuv_path
+    conv2yuv = "ffmpeg -y -i " + tmp_path + mp4_path + " -c:v rawvideo -pix_fmt yuv420p " + tmp_path + yuv_path
     subprocess.call(conv2yuv, shell=True)
 
     # get the video infos
@@ -87,7 +87,7 @@ def video_2_yuvframe(user_id, seg_id, video, bitrate):
     frame_size = int(width * height * depth / ratio ) # bytes per frame
 
     # clip each frame form yuv video
-    with open(yuv_path, 'rb') as vid_in:
+    with open(tmp_path + yuv_path, 'rb') as vid_in:
         for i in range(1, int(length) + 1):
             # read data from yuv file
             frame_data = vid_in.read(frame_size)
@@ -198,7 +198,7 @@ def concat_image_2_video(video, user_id, seg_id, bitrate):
     for i in range(0, len(frame_list)):
         subprocess.call('cat %s >> %s' % (frame_list[i], tmp_path) + 'concat_frame.yuv', shell=True)
 
-    kvazaar = "kvazaar -i " + tmp_path + "concat_frame.yuv" + " --input-res=3840x1920 --input-fps 30.0 --bitrate " + str(int(int(bitrate[:-4]) * math.pow(10, 6))) + " -o " + tmp_path + "concat_frame.hvc"
+    kvazaar = "kvazaar -i " + tmp_path + "concat_frame.yuv" + " --input-res=3840x1920 --input-fps 30.0 --bitrate " + str(int(int(bitrate[:-4]) * math.pow(10, 6))) + " -o " + tmp_path + "concat_frame.hvc" + " 2>&1 | tee " + "./PSNR/psnr_" + video +'_user'+ user_id + '_' + str(seg_id) + '_' + bitrate + "_VPR.csv"
     subprocess.call(kvazaar, shell=True)
 
     mp4box = "MP4Box -add " + tmp_path + "concat_frame.hvc:fps=" + str(FPS) + " -new " + output_path + mp4_path
