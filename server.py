@@ -149,7 +149,7 @@ while True:
                 (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
 
                 # clip video into frames
-                viewport.video_2_image(seg_id, VIDEO)
+                viewport.video_2_yuvframe(seg_id, VIDEO)
 
                 print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
                 # read the user orientation file and skip the first line
@@ -174,13 +174,13 @@ while True:
                     roll = float(line[9])
                     (viewed_fov, probs) = viewport.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
                     #count += viewport.count_tiles(probs)
-                    viewport.render_fov_local(i, seg_id, VIDEO, viewed_fov)
+                    viewport.render_fov(i, seg_id, VIDEO, viewed_fov)
 
                 # concatenate all the frame into one video
                 #avg_tiles = count / 64.0
                 #print >> sys.stderr, "Encoding bitrate: ", int(round(BITRATE * avg_tiles / NO_OF_TILES))
                 #viewport.concat_image_2_video(int(round(BITRATE * avg_tiles / NO_OF_TILES)), seg_id)
-                viewport.concat_image_2_video(int(BITRATE), seg_id)
+                viewport.concat_image_2_video(int(BITRATE), VIDEO, seg_id)
                 user.close()
             elif MODE.name == "CR":
                 (reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(NO_OF_TILES, SEG_LENGTH, seg_id, VIDEO, [], viewed_tiles, [])
