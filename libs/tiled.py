@@ -95,7 +95,7 @@ def mixed_tiles_quality(no_of_tiles, seg_length, user_id, seg_id, VIDEO, bitrate
     end_recv_ts = time.time()
     
     # Concatenate init track and each tiled tracks
-    offset = VIDEO + '_user'+ user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode
+    offset = VIDEO + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode
     for i in range(0, len(video_list), 1):
         subprocess.call('cat %s >> temp_%s.mp4' % 
                 ( (tmp_path + video_list[i]), offset), shell=True)
@@ -108,9 +108,9 @@ def mixed_tiles_quality(no_of_tiles, seg_length, user_id, seg_id, VIDEO, bitrate
             ( offset, FPS, offset), shell=True)
 
     # Move all the files into folders
-    subprocess.call('mv temp_%s.mp4 %s' % ( offset, tmp_path), shell=True)
-    subprocess.call('mv temp_%s_track1.hvc %s' % ( offset, tmp_path), shell=True)
-    subprocess.call('mv output_%s.mp4 %s' % ( offset, output_path), shell=True)
+    subprocess.call('mv temp_%s.mp4 %s' % (offset, tmp_path), shell=True)
+    subprocess.call('mv temp_%s_track1.hvc %s' % (offset, tmp_path), shell=True)
+    subprocess.call('mv output_%s.mp4 %s' % (offset, output_path), shell=True)
     return (req_ts, start_recv_ts, end_recv_ts)
 
 

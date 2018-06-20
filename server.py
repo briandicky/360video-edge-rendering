@@ -53,9 +53,7 @@ class Server(Process):
 	self.EDGE_SERVER_ADDR = edge_server_addr
 	self.EDGE_SERVER_PORT = edge_server_port
 
-
     def run( self):
-
 	# debugging messages 
 	print >> sys.stderr, "No. of tiles = %s x %s = %s" % (self.tile_w, self.tile_h, self.NO_OF_TILES)
 	print >> sys.stderr, "FoV width = %s, FoV height = %s" % (self.fov_degree_w, self.fov_degree_h)
@@ -112,7 +110,7 @@ class Server(Process):
 			viewed_tiles = tiled.ori_2_tiles(yaw, pitch, self.fov_degree_w, self.fov_degree_h, self.tile_w, self.tile_h)
 		    elif mode == "TR_only":
 			print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_tiles]...'
-			viewed_tiles = tiled.ori_2_tiles(yaw, pitch, self.fov_degree_w, self.fov_degree_h, self.tile_w, self.tile_h) #100 100 5 5
+			viewed_tiles = tiled.ori_2_tiles(yaw, pitch, self.fov_degree_w, self.fov_degree_h, self.tile_w, self.tile_h)
 		    elif mode == "VPR":
 			viewed_tiles = []
 			for i in range(1, (self.tile_w*self.tile_h + 2), 1):
@@ -133,8 +131,9 @@ class Server(Process):
 
 		    repo = "output_" + VIDEO + '_user'+ user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode + "/"
 	            the_file = "output_" + VIDEO + '_user'+ user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode + ".mp4"
+
 		    psnr_list = []
-		    psnr_name = "./PSNR/psnr_"+VIDEO + '_user'+ user_id+ '_' + str(seg_id)+'_'+bitrate+'_'+mode+".csv"
+		    psnr_name = "./PSNR/psnr_" + VIDEO + '_user'+ user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode + ".csv"
 		    if mode == "TR":
 			(reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(self.NO_OF_TILES, self.SEG_LENGTH, user_id, seg_id, VIDEO, bitrate, mode, [], viewed_tiles, [])
 			expe = cv2.VideoCapture(repo + the_file)
@@ -175,7 +174,7 @@ class Server(Process):
 		    elif mode == "VPR":
 			(reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(self.NO_OF_TILES, self.SEG_LENGTH, user_id, seg_id, VIDEO, bitrate, mode, [], viewed_tiles, [])
 
-			viewport.video_2_image(self.SEG_LENGTH, user_id, seg_id, VIDEO, bitrate)
+			viewport.video_2_yuvframe(user_id, seg_id, VIDEO, bitrate)
 
 			print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
 			# read the user orientation file and skip the first line
@@ -206,11 +205,11 @@ class Server(Process):
                             else:
 			        viewed_fov = viewport.ori_2_viewport(yaw, pitch, self.fov_degree_w, self.fov_degree_h, self.tile_w, self.tile_h)
 			        cPickle.dump( viewed_fov, open(pickle_path, "wb"))
-			    viewport.render_fov_local( VIDEO, user_id, seg_id, i, bitrate, viewed_fov)
+			    viewport.render_fov(VIDEO, user_id, seg_id, i, bitrate, viewed_fov)
 			# concatenate all the frame into one video
 			viewport.concat_image_2_video( VIDEO, user_id, seg_id, bitrate)
 			user.close()
-			expe = cv2.VideoCapture(repo+the_file)
+			expe = cv2.VideoCapture(repo + the_file)
 			cont = cv2.VideoCapture("./360videos_60s/"+VIDEO+"_equir.mp4")
 			frame_no = (seg_id - 1)*64 + 1
 			for i in range(frame_no-1):
