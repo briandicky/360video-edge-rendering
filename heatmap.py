@@ -13,10 +13,10 @@ import numpy
 import threading
 import time
 from multiprocessing import Process
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFile
 from libs import viewport
 
-VIDEO = "game"
+VIDEO = "panel"
 WIDTH = 3840
 HEIGHT = 1920
 FOV_DEGREEW = 100
@@ -24,6 +24,8 @@ FOV_DEGREEH = 100
 TILE_W = 5
 TILE_H = 5
 heatmap_path = "./tmp_heatmap/"
+
+#ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 def make_sure_path_exists(path):
     try:
@@ -79,18 +81,23 @@ def HeatMap(userid, video, width, height, fov_degreew, fov_degreeh, tile_w, tile
 
     user.readline()
     for i in range(1, 1801):
-        if (os.path.isfile(heatmap_path + video + "_frame" + str(i).zfill(5) + ".png")):
-            im = Image.open(heatmap_path + video + "_frame" + str(i).zfill(5) + ".png", "r")
-        else:
-            im = create_image(width, height)
-
         line = user.readline().strip().split(',')
         yaw = float(line[7])
         pitch = float(line[8])
         roll = float(line[9])
         (viewed_fov, probs) = viewport.ori_2_viewport(yaw, pitch, fov_degreew, fov_degreeh, tile_w, tile_h)
 
-        pix = im.load()
+        if (os.path.isfile(heatmap_path + video + "_frame" + str(i).zfill(5) + ".png")):
+            im = Image.open(heatmap_path + video + "_frame" + str(i).zfill(5) + ".png", "r")
+        else:
+            im = create_image(width, height)
+
+        try:
+            pix = im.load()
+        except IOError as e:
+            time.sleep(2)
+            pix = im.load()
+
         size = len(viewed_fov)
         for x in range(0, size):
             w = viewed_fov[x][0]
@@ -109,13 +116,8 @@ make_sure_path_exists(heatmap_path)
 
 for n in range(1, 51):
     user_thread(n, VIDEO, WIDTH, HEIGHT, FOV_DEGREEW, FOV_DEGREEH, TILE_W, TILE_H).start()
-    #th1.start()
-    time.sleep(60)
+    time.sleep(600)
 
 #user_thread(2, VIDEO, WIDTH, HEIGHT, FOV_DEGREEW, FOV_DEGREEH, TILE_W, TILE_H).start()
 ##th2.start()
-#
 #time.sleep(30)
-#
-#user_thread(3, VIDEO, WIDTH, HEIGHT, FOV_DEGREEW, FOV_DEGREEH, TILE_W, TILE_H).start()
-##th3.start()
