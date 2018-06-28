@@ -16,7 +16,7 @@ from multiprocessing import Process
 from PIL import Image, ImageDraw, ImageFile
 from libs import viewport
 
-VIDEO = "panel"
+VIDEO = "coaster"
 WIDTH = 3840
 HEIGHT = 1920
 FOV_DEGREEW = 100
@@ -116,7 +116,7 @@ make_sure_path_exists(heatmap_path)
 
 for n in range(1, 51):
     user_thread(n, VIDEO, WIDTH, HEIGHT, FOV_DEGREEW, FOV_DEGREEH, TILE_W, TILE_H).start()
-    time.sleep(600)
+    time.sleep(300)
 
 #user_thread(2, VIDEO, WIDTH, HEIGHT, FOV_DEGREEW, FOV_DEGREEH, TILE_W, TILE_H).start()
 ##th2.start()
