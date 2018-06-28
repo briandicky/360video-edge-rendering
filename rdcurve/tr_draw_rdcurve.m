@@ -2,16 +2,15 @@ close all; clear all;
 bitrate = [1;2;4;8;16];
 load census;
 
-tr = csvread('TR.csv');
-vpr = csvread('VPR.csv');
+tr = csvread('matlab_OWNPSNR_coaster_TR.csv');
 
 figure;
 %TR
 [t, gof] = fit(bitrate, tr, 'poly2');
 plot(t, bitrate, tr, 'o');
 
-axis([0 18 22 42]);
-set(gca, 'xtick', [0:4:20], 'ytick', [22:4:42]);
+axis([0 18 22 44]);
+set(gca, 'xtick', [0:4:20], 'ytick', [22:4:44]);
 xlabel('Bitrate (Mbps)');
 ylabel('VPSNR');
 legend('Sample', 'Fitted Curve', 'Location', 'SouthEast');

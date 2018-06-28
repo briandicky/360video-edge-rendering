@@ -1,7 +1,7 @@
 close all; clear all;
 bitrate = [1;2;4;8;16];
 
-tr = csvread('TR.csv');
+tr = csvread('matlab_SPSNRI_coaster_TR.csv');
 vpr = csvread('VPR.csv');
 
 figure;
