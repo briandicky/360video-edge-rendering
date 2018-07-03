@@ -16,7 +16,7 @@ from multiprocessing import Process
 from PIL import Image, ImageDraw, ImageFile
 from libs import viewport
 
-VIDEO = "coaster"
+VIDEO = "game"
 WIDTH = 3840
 HEIGHT = 1920
 FOV_DEGREEW = 100
@@ -95,7 +95,6 @@ def HeatMap(userid, video, width, height, fov_degreew, fov_degreeh, tile_w, tile
         try:
             pix = im.load()
         except IOError as e:
-            time.sleep(2)
             pix = im.load()
 
         size = len(viewed_fov)
@@ -116,7 +115,7 @@ make_sure_path_exists(heatmap_path)
 
 for n in range(1, 51):
     user_thread(n, VIDEO, WIDTH, HEIGHT, FOV_DEGREEW, FOV_DEGREEH, TILE_W, TILE_H).start()
-    time.sleep(300)
+    time.sleep(600)
 
 #user_thread(2, VIDEO, WIDTH, HEIGHT, FOV_DEGREEW, FOV_DEGREEH, TILE_W, TILE_H).start()
 ##th2.start()
