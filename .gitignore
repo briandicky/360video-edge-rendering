@@ -111,3 +111,9 @@ venv.bak/
 *.yuv
 *.csv
 *.pem
+*.png
+*.eps 
+*.zip
+360dataset/
+experiment/
+simulator/cloudcom17/
