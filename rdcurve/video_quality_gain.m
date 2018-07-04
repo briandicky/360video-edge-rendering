@@ -1,22 +1,28 @@
 close all; clear all;
 bitrate = [1;2;4;8;16];
-load census;
 
-tr = csvread('matlab_WSPSNR_coaster_TR.csv');
+tr = csvread('matlab_SPSNRI_coaster_TR.csv');
+vpr = csvread('matlab_VPSNR_coaster_VPR.csv');
 
 figure;
+gain=vpr-tr;
+load census;
 %TR
-[t, gof] = fit(bitrate, tr, 'poly2');
-plot(t, bitrate, tr, 'o');
-
-axis([0 18 30 50]);
-set(gca, 'xtick', [0:4:20], 'ytick', [30:4:50]);
-xlabel('Bitrate (Mbps)');
-ylabel('SPSNR-NN');
-legend('Sample', 'Fitted Curve', 'Location', 'SouthEast');
+[g, g_gof] = fit(bitrate, gain, 'poly2');
+plot(g, bitrate, gain, 'o');
+%plot(bitrate, gain);
 hold on;
+%plot(bitrate, gain, 'b-o');
 
-% for 3-column figures
+
+axis([0 17 0 6]);
+set(gca, 'xtick', [0:4:19], 'ytick', [0:2:6]);
+xlabel('Bitrate (Mbps)');
+ylabel('Video Quality Gain');
+legend('Sample (R-Square=0.9549)' ,'Fitted Curve');
+
+
+ % for 3-column figures
 set(gca,'FontSize',20)
 set(gca, 'FontName', 'Times New Roman');
 set(gca,'TickDir','out')

@@ -1,7 +1,6 @@
 close all; clear all;
 bitrate = [1;2;4;8;16];
 
-tr = csvread('TR.csv');
 vpr = csvread('VPR.csv');
 
 figure;
@@ -10,8 +9,8 @@ load census;
 [v, gof] = fit(bitrate, vpr, 'poly2');
 plot(v, bitrate, vpr, 'o');
 
-axis([0 18 22 42]);
-set(gca, 'xtick', [0:4:20], 'ytick', [22:4:42]);
+axis([0 18 26 50]);
+set(gca, 'xtick', [0:4:20], 'ytick', [26:4:50]);
 %title('Tile Rewriting');
 xlabel('Bitrate (Mbps)');
 ylabel('VPSNR');

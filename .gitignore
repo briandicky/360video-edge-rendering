@@ -110,3 +110,4 @@ venv.bak/
 *.hvc
 *.yuv
 *.csv
+*.pem

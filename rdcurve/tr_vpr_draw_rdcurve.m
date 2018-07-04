@@ -2,7 +2,7 @@ close all; clear all;
 bitrate = [1;2;4;8;16];
 
 tr = csvread('matlab_SPSNRI_coaster_TR.csv');
-vpr = csvread('VPR.csv');
+vpr = csvread('matlab_VPSNR_coaster_VPR.csv');
 
 figure;
 load census;
@@ -14,12 +14,12 @@ hold on;
 [v, vpr_gof] = fit(bitrate, vpr, 'poly2');
 plot(v, bitrate, vpr, '*');
 
-axis([0 18 22 42]);
-set(gca, 'xtick', [0:4:20], 'ytick', [22:4:42]);
+axis([0 17 22 48]);
+set(gca, 'xtick', [0:4:20], 'ytick', [22:4:48]);
 %title('Tile Rewriting');
 xlabel('Bitrate (Mbps)');
 ylabel('VPSNR');
-legend('TR (R=0.9954)', 'Fitted Curve', 'VPR (R=0.9810)', 'Location', 'SouthEast');
+legend('TR (R-Square=0.9953)', 'Fitted Curve', 'VPR (R-Square=0.9989)', 'Location', 'SouthEast');
 
 
  % for 3-column figures
