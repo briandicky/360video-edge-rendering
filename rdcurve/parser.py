@@ -2,8 +2,8 @@ import os
 import sys
 import subprocess 
 
-mode = "VPR"
-video = "coaster"
+video = sys.argv[1]
+mode = sys.argv[2]
 bitrate = ["1Mbps", "2Mbps", "4Mbps", "8Mbps", "16Mbps"]
 
 if mode == "TR":
