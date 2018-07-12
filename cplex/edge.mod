@@ -12,9 +12,8 @@ float B = ...;          // outbound bandwidth
 
 float bh = ...;         // high bitrate 
 float bl = ...;         // low bitrate
-float qh[n][v] = ...;   // video quality with high bitrate
-float ql[n][v] = ...;   // video quality with low bitrate
-float R = ...;          // video quality gain
+float qt[n] = ...;      // video quality with high bitrate
+float qv[n] = ...;      // video quality with low bitrate
 int E = ...;            // max no. of client that egde can serve
 
 // Decision variables
@@ -22,7 +21,7 @@ dvar boolean x[n];
 
 // Objective
 maximize
-   1/N*sum(nid in n) (x[nid]*R/V[nid]*sum(vid in v) (qh[nid][vid]) + (1-x[nid])*1/V[nid]*sum(vid in v) (qh[nid][vid]));
+   1/N*sum(nid in n) (x[nid]*(qv[nid] - qt[nid]));
 
 // Constraints
 subject to{

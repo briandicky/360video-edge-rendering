@@ -1,26 +1,43 @@
 close all; clear all;
 bitrate = [1;2;4;8;16];
 
-tr = csvread('matlab_SPSNRI_coaster_TR.csv');
-vpr = csvread('matlab_VPSNR_coaster_VPR.csv');
+coaster_tr = csvread('matlab_WSPSNR_coaster_TR.csv');
+coaster_vpr = csvread('matlab_VPSNR_coaster_VPR.csv');
+game_tr = csvread('matlab_WSPSNR_game_TR.csv');
+game_vpr = csvread('matlab_VPSNR_game_VPR.csv');
+panel_tr = csvread('matlab_WSPSNR_panel_TR.csv');
+panel_vpr = csvread('matlab_VPSNR_panel_VPR.csv');
 
 figure;
-gain=vpr-tr;
+coaster_gain=coaster_vpr-coaster_tr;
+game_gain=game_vpr-game_tr;
+panel_gain=panel_vpr-panel_tr;
 load census;
 %TR
-[g, g_gof] = fit(bitrate, gain, 'poly2');
-plot(g, bitrate, gain, 'o');
-%plot(bitrate, gain);
+[cg, cg_gof] = fit(bitrate, coaster_gain, 'poly2');
+[gg, gg_gof] = fit(bitrate, game_gain, 'poly2');
+[pg, pg_gof] = fit(bitrate, panel_gain, 'poly2');
+h1 = plot(cg, bitrate, coaster_gain, 'ro');
 hold on;
-%plot(bitrate, gain, 'b-o');
+h2 = plot(gg, bitrate, game_gain, 'b*');
+hold on;
+h3 = plot(pg, bitrate, panel_gain, 'g+');
+grid on;
 
+LH(1) = plot(nan, nan, 'ro');
+L{1} = 'NI, fast-paced';
+LH(2) = plot(nan, nan, 'b*');
+L{2} = 'CG, fast-paced';
+LH(3) = plot(nan, nan, 'g+');
+L{3} = 'NI, slow-paced';
+LH(4) = plot(nan, nan, 'r-');
+L{4} = 'Fitted Curve';
 
-axis([0 17 0 6]);
-set(gca, 'xtick', [0:4:19], 'ytick', [0:2:6]);
+axis([0 17 0 10]);
+set(gca, 'xtick', (0:4:17), 'ytick', (0:2:10));
 xlabel('Bitrate (Mbps)');
 ylabel('Video Quality Gain');
-legend('Sample (R-Square=0.9549)' ,'Fitted Curve');
-
+legend(LH, L);
 
  % for 3-column figures
 set(gca,'FontSize',20)
