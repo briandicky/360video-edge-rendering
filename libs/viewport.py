@@ -50,15 +50,15 @@ def count_tiles(prob):
     return num
 
 
-def video_2_yuvframe(user_id, seg_id, video, bitrate):
+def video_2_yuvframe(user_id, seg_id, video, bitrate, mode):
     global tmp_path
-    tmp_path = "./tmp_"+ video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + '_VPR/'
+    tmp_path = "./tmp_"+ video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode + '/'
 
     global output_path
-    output_path = "./output_" + video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + '_VPR/'
+    output_path = "./output_" + video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode + '/'
 
     global frame
-    frame_path = "./frame_" + video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + '_VPR/'
+    frame_path = "./frame_" + video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode + '/'
 
     # Check path and files existed or not
     filemanager.make_sure_path_exists(tmp_path)
@@ -66,10 +66,10 @@ def video_2_yuvframe(user_id, seg_id, video, bitrate):
     filemanager.make_sure_path_exists(frame_path)
 
     # convert mp4 to yuv
-    mp4_path = "output_" + video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + "_VPR.mp4"
+    mp4_path = "output_" + video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + "_" + mode + ".mp4"
     subprocess.call('mv %s %s' % (output_path + mp4_path, tmp_path + mp4_path), shell=True)
 
-    yuv_path = "output_" + video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + "_VPR.yuv"
+    yuv_path = "output_" + video + '_user' + user_id + '_' + str(seg_id) + '_' + bitrate + "_" + mode + ".yuv"
     conv2yuv = "ffmpeg -y -i " + tmp_path + mp4_path + " -c:v rawvideo -pix_fmt yuv420p " + tmp_path + yuv_path
     subprocess.call(conv2yuv, shell=True)
 
@@ -147,7 +147,7 @@ def render_fov(video, user_id, seg_id, index, bitrate, viewed_fov=[]):
 
     new_path = tmp_path + "fov_temp" + str(index) + ".yuv" 
     ret.tofile(new_path, "")
-    print >> sys.stderr, frame_path + "frame" + str(index) + ".yuv" + " -> " + tmp_path + "fov_temp" + str(index) + ".yuv" 
+    print >> sys.stderr, frame_path + "frame" + str(index) + ".yuv" + " --> " + tmp_path + "fov_temp" + str(index) + ".yuv" 
 
 
 def video2YCbCr(filename, width, height):    

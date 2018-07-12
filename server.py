@@ -26,6 +26,8 @@ from libs import viewport
 from libs import VPsnrCalc
 from libs import PsnrCalc_tiled
 from libs import filemanager
+#from libs import ModeSelector
+from metrics import SPsnrCalc
 from socket import error as SocketError
 
 
@@ -73,7 +75,7 @@ class Server(Process):
 
 	# Listen for incoming connections
 	# Specifies the maximum number of queued connections (usually 5)
-	sock.listen(5)
+	sock.listen(20)
 
 	while True:
 	    # Wait for a connection 
@@ -100,8 +102,8 @@ class Server(Process):
 		    roll = float(ori[4])
 		    VIDEO = str(ori[5])
 		    user_id = ori[6]
-		    #ORIENTATION = str(ori[6])
 		    mode = str(ori[7])
+                    #mode = ModeSelector
 		    bitrate = str(ori[8])
 		    
 		    ORIENTATION = VIDEO+'_user'+user_id+"_orientation.csv"
@@ -136,45 +138,49 @@ class Server(Process):
 		    psnr_name = "./PSNR/psnr_" + VIDEO + '_user'+ user_id + '_' + str(seg_id) + '_' + bitrate + '_' + mode + ".csv"
 		    if mode == "TR":
 			(reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(self.NO_OF_TILES, self.SEG_LENGTH, user_id, seg_id, VIDEO, bitrate, mode, [], viewed_tiles, [])
-			expe = cv2.VideoCapture(repo + the_file)
-			cont = cv2.VideoCapture("./360videos_60s/"+VIDEO+"_equir.mp4")
-			frame_no = (seg_id - 1)*64 + 1
-			for i in range(frame_no-1):
-			    ret, imgC = cont.read()
-			while(True):
-			    ret, imgE = expe.read()
-			    if(imgE is None):
-				print >> sys.stderr, "next clip..."
-				break
-			    ret, imgC = cont.read()
-			    if(imgC is None):
-				print >> sys.stderr, "Error occured. Cannot read the video."
-				break
-			    psnr = PsnrCalc_tiled.PsnrTiledCalc(imgE, imgC, viewed_tiles)
-			    print(str(frame_no)+" tiled_psnr:          "+str(psnr))
-			    psnr_list.append(psnr)
-			    
-			    f = open(psnr_name, "a")
-			    f.write(str(frame_no).ljust(15)+',')
-			    f.write(str(psnr).rjust(15))
-			    f.write('\n')
-			    f.close()
-			    frame_no += 1
-			    #if( (frame_no%T) != 0 or frame_no < next_frame):
-			    #    frame_no += 1
-			    #    continue
-		        f = open(psnr_name, "a")
-			f.write("avg_psnr, ")
-			f.write(str(sum(psnr_list)/len(psnr_list)))
-			f.write('\n')
-			f.close()
+                        # Calculate PSNR using JVEC/360-Lib
+                        SPsnrCalc.SPsnrCalc(VIDEO, user_id, seg_id, bitrate, mode)
+
+			#expe = cv2.VideoCapture(repo + the_file)
+			#cont = cv2.VideoCapture("./360videos_60s/"+VIDEO+"_equir.mp4")
+			#frame_no = (seg_id - 1)*64 + 1
+			#for i in range(frame_no-1):
+			#    ret, imgC = cont.read()
+			#while(True):
+			#    ret, imgE = expe.read()
+			#    if(imgE is None):
+			#	print >> sys.stderr, "next clip..."
+			#	break
+			#    ret, imgC = cont.read()
+			#    if(imgC is None):
+			#	print >> sys.stderr, "Error occured. Cannot read the video."
+			#	break
+
+			#    psnr = PsnrCalc_tiled.PsnrTiledCalc(imgE, imgC, viewed_tiles)
+			#    print(str(frame_no)+" tiled_psnr:          "+str(psnr))
+			#    psnr_list.append(psnr)
+			#    
+			#    f = open(psnr_name, "a")
+			#    f.write(str(frame_no).ljust(15)+',')
+			#    f.write(str(psnr).rjust(15))
+			#    f.write('\n')
+			#    f.close()
+			#    frame_no += 1
+			#    #if( (frame_no%T) != 0 or frame_no < next_frame):
+			#    #    frame_no += 1
+			#    #    continue
+		        #f = open(psnr_name, "a")
+			#f.write("avg_psnr, ")
+			#f.write(str(sum(psnr_list)/len(psnr_list)))
+			#f.write('\n')
+			#f.close()
 			    
 		    elif mode == "TR_only":
 			(reqts, start_recvts, end_recvts) = tiled.only_fov_tiles(self.NO_OF_TILES, self.SEG_LENGTH, seg_id, VIDEO, bitrate, [], viewed_tiles, [])
 		    elif mode == "VPR":
 			(reqts, start_recvts, end_recvts) = tiled.mixed_tiles_quality(self.NO_OF_TILES, self.SEG_LENGTH, user_id, seg_id, VIDEO, bitrate, mode, [], viewed_tiles, [])
 
-			viewport.video_2_yuvframe(user_id, seg_id, VIDEO, bitrate)
+			viewport.video_2_yuvframe(user_id, seg_id, VIDEO, bitrate, mode)
 
 			print >> sys.stderr, '\ncalculating orientation from [yaw, pitch, roll] to [viewed_fov]...'               
 			# read the user orientation file and skip the first line
@@ -190,6 +196,7 @@ class Server(Process):
 			    raise
 
 			user.readline()
+
 			for i in range(64*(seg_id-1)):
 			    user.readline()
 			kkk = 73 if seg_id == 28 else 65
@@ -199,53 +206,56 @@ class Server(Process):
 			    yaw = float(line[7])
 			    pitch = float(line[8])
 			    roll = float(line[9])
-			    pickle_path = "./pickles/fov_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+'_'+ str(i)+".pkl"
-                            if (os.path.isfile(pickle_path)):
-                                viewed_fov = cPickle.load(open(pickle_path, "rb"))
-                            else:
-			        viewed_fov = viewport.ori_2_viewport(yaw, pitch, self.fov_degree_w, self.fov_degree_h, self.tile_w, self.tile_h)
-			        cPickle.dump( viewed_fov, open(pickle_path, "wb"))
+			    #pickle_path = "./pickles/fov_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+'_'+ str(i)+".pkl"
+                            viewed_fov = viewport.ori_2_viewport(yaw, pitch, self.fov_degree_w, self.fov_degree_h, self.tile_w, self.tile_h)
+                            #if (os.path.isfile(pickle_path)):
+                            #    viewed_fov = cPickle.load(open(pickle_path, "rb"))
+                            #else:
+			    #    viewed_fov = viewport.ori_2_viewport(yaw, pitch, self.fov_degree_w, self.fov_degree_h, self.tile_w, self.tile_h)
+			    #    cPickle.dump(viewed_fov, open(pickle_path, "wb"))
 			    viewport.render_fov(VIDEO, user_id, seg_id, i, bitrate, viewed_fov)
 			# concatenate all the frame into one video
 			viewport.concat_image_2_video( VIDEO, user_id, seg_id, bitrate)
 			user.close()
-			expe = cv2.VideoCapture(repo + the_file)
-			cont = cv2.VideoCapture("./360videos_60s/"+VIDEO+"_equir.mp4")
-			frame_no = (seg_id - 1)*64 + 1
-			for i in range(frame_no-1):
-			    ret, imgC = cont.read()
-			while(True):
-			    ret, imgE = expe.read()
-			    if(imgE is None):
-				print >> sys.stderr, "next clip..."
-				break
-			    ret, imgC = cont.read()
-			    if(imgC is None):
-				print >> sys.stderr, "Error occured. Cannot read the video."
-				break
-			    tmp = frame_no%64 if frame_no%64!=0 else 64
-			    pickle_path = "./pickles/fov_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+'_'+str(tmp)+".pkl"
-			    viewed_fov = cPickle.load(open(pickle_path,"rb"))
-			    psnr = VPsnrCalc.VPsnrCalc(imgE, imgC, viewed_fov)
-			    psnr_list.append(psnr)
-			    print(str(frame_no)+" viewport_psnr:        "+str(psnr))
-			    #filemanager.make_sure_path_exists("./PSNR")
-			    f = open(psnr_name, "a")
-			    f.write(str(frame_no).ljust(15)+',')
-			    f.write(str(psnr).rjust(15))
-			    f.write('\n')
-			    f.close()
-			    frame_no += 1
-			for i in range(1, kkk):
-			    pkk = "./pickles/fov_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+'_'+str(i)+".pkl"
-			    os.remove(pkk)
+
+			#expe = cv2.VideoCapture(repo + the_file)
+			#cont = cv2.VideoCapture("./360videos_60s/"+VIDEO+"_equir.mp4")
+			#frame_no = (seg_id - 1)*64 + 1
+			#for i in range(frame_no-1):
+			#    ret, imgC = cont.read()
+			#while(True):
+			#    ret, imgE = expe.read()
+			#    if(imgE is None):
+			#	print >> sys.stderr, "next clip..."
+			#	break
+			#    ret, imgC = cont.read()
+			#    if(imgC is None):
+			#	print >> sys.stderr, "Error occured. Cannot read the video."
+			#	break
+			#    tmp = frame_no%64 if frame_no%64!=0 else 64
+			#    pickle_path = "./pickles/fov_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+'_'+str(tmp)+".pkl"
+			#    viewed_fov = cPickle.load(open(pickle_path,"rb"))
+
+                        #    # V-PSNR
+			#    psnr = VPsnrCalc.VPsnrCalc(imgE, imgC, viewed_fov)
+			#    psnr_list.append(psnr)
+			#    print(str(frame_no)+" viewport_psnr:        "+str(psnr))
+			#    f = open(psnr_name, "a")
+			#    f.write(str(frame_no).ljust(15)+',')
+			#    f.write(str(psnr).rjust(15))
+			#    f.write('\n')
+			#    f.close()
+			#    frame_no += 1
+			#for i in range(1, kkk):
+			#    pkk = "./pickles/fov_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+'_'+str(i)+".pkl"
+			#    os.remove(pkk)
 			shutil.rmtree("./tmp_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode)
 			shutil.rmtree("./frame_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode)
-		        f = open(psnr_name, "a")
-			f.write("avg_psnr, ")
-			f.write(str(sum(psnr_list)/len(psnr_list)))
-			f.write('\n')
-			f.close()
+		        #f = open(psnr_name, "a")
+			#f.write("avg_psnr, ")
+			#f.write(str(sum(psnr_list)/len(psnr_list)))
+			#f.write('\n')
+			#f.close()
 		    elif mode == "CR":
 			tiled.mixed_tiles_quality(self.NO_OF_TILES, self.SEG_LENGTH, user_id, seg_id, VIDEO, bitrate, mode, [], viewed_tiles, [])
 		    else:
@@ -270,7 +280,7 @@ class Server(Process):
 
 		    # cloud server info
 		    log_path = "./log/LOG_"+VIDEO+'_user'+user_id+'_'+str(seg_id)+'_'+bitrate+'_'+mode+".csv"
-		    f = open( log_path, "a")
+		    f = open(log_path, "a")
 		    f.write(str(self.ENCODING_SERVER_ADDR) + ",")
 		    f.write(str(self.ENCODING_SERVER_PORT) + ",")
 
